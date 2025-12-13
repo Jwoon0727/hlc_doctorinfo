@@ -180,23 +180,31 @@ export function DoctorSearchPage() {
       <div className="mx-auto max-w-7xl p-4 md:p-8">
         {/* Header */}
         <header className="mb-8 text-center relative">
-          <Link href="/admin/login" className="absolute right-0 top-0">
-            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-              <ChevronsUpDown className="h-4 w-4" />
-              관리자
-            </Button>
-          </Link>
-          <h1 className="mb-2 text-4xl font-bold text-blue-600 dark:text-blue-400">HLC천안 협조의사명단</h1>
-          <p className="text-muted-foreground">전문의 등급과 진료과목으로 최적의 의료진을 찾아보세요</p>
+        <div className="flex justify-end">
+    <Link href="/admin/login">
+      <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+        <ChevronsUpDown className="h-4 w-4" />
+        관리자
+      </Button>
+    </Link>
+  </div>
+  <div className="mt-8 text-center">
+    <h1 className="mb-2 text-4xl font-bold text-blue-600 dark:text-blue-400">
+      HLC천안 협조의사명단
+    </h1>
+    <p className="text-muted-foreground">
+      전문의 등급과 진료과목으로 최적의 의료진을 찾아보세요
+    </p>
+  </div>
         </header>
 
         <Card className="mb-6 shadow-xl border-none bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-900 dark:to-slate-800/50">
-          <CardHeader className="border-b border-blue-100 dark:border-slate-700 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-            <div className="flex items-center gap-2 text-white">
-              <Search className="h-5 w-5" />
-              검색 조건
-            </div>
-          </CardHeader>
+        <CardHeader className="border-b border-blue-100 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-t-lg">
+  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold">
+    <Search className="h-5 w-5" />
+    <span>검색 조건</span>
+  </div>
+</CardHeader>
           <CardContent className="pt-6">
             {/* Doctor Rating Tabs */}
             <div className="mb-6">
