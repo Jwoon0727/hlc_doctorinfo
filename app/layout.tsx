@@ -8,8 +8,8 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "의사 · 병원 찾기 - 최적의 의료진 검색",
-  description: "전문의 등급과 진료과목으로 최적의 의료진을 찾아보세요",
+  title: "협조의사명단",
+  description: "협조의사/일반의사 의료진 찾기",
   generator: "v0.app",
   icons: {
     icon: [

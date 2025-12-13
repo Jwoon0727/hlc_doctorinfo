@@ -186,7 +186,7 @@ export function DoctorSearchPage() {
               관리자
             </Button>
           </Link>
-          <h1 className="mb-2 text-4xl font-bold text-blue-600 dark:text-blue-400">의사 · 병원 찾기</h1>
+          <h1 className="mb-2 text-4xl font-bold text-blue-600 dark:text-blue-400">HLC천안 협조의사명단</h1>
           <p className="text-muted-foreground">전문의 등급과 진료과목으로 최적의 의료진을 찾아보세요</p>
         </header>
 
