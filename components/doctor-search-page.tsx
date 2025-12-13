@@ -23,6 +23,8 @@ import {
   Check,
   ChevronsUpDown,
   Loader2,
+  HelpCircle,
+  CheckCircle2,
 } from "lucide-react"
 import {
   type Department,
@@ -57,10 +59,10 @@ const ratingColors = {
 }
 
 const ratingLabels = {
-  A: "최우수",
-  B: "우수",
-  C: "양호",
-  D: "보통",
+  A: "협조의사",
+  B: "협조의사",
+  C: "일반의사",
+  D: "비의료인",
 }
 
 export function DoctorSearchPage() {
@@ -79,6 +81,7 @@ export function DoctorSearchPage() {
 
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorWithDetails | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isRatingInfoOpen, setIsRatingInfoOpen] = useState(false)
 
   const [openDepartmentCombobox, setOpenDepartmentCombobox] = useState(false)
 
@@ -201,14 +204,44 @@ export function DoctorSearchPage() {
         <Card className="mb-6 shadow-xl border-none bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-900 dark:to-slate-800/50">
         <CardHeader className="border-b border-blue-100 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-t-lg">
   <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold">
-    <Search className="h-5 w-5" />
-    <span>검색 조건</span>
+   {/* Search by Name */}
+   <div className="md:col-span-3 w-full">
+                <Label htmlFor="search" className="mb-2 block text-sm font-semibold text-foreground">
+                  의사명 또는 전문과목
+                </Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Input
+                    id="search"
+                    placeholder="예: 김철수, 심장내과"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearch()
+                      }
+                    }}
+                    className="w-full pl-10 h-12 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 rounded-lg"
+                  />
+                </div>
+              </div>
   </div>
 </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="pt-2">
+            
             {/* Doctor Rating Tabs */}
             <div className="mb-6">
-              <Label className="mb-3 block text-base font-semibold text-foreground">의사 등급</Label>
+            <div className="mb-3 flex items-center gap-2">
+                <Label className="text-base font-semibold text-foreground">의사 등급</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 rounded-full hover:bg-blue-100 dark:hover:bg-slate-700"
+                  onClick={() => setIsRatingInfoOpen(true)}
+                >
+                  <HelpCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </Button>
+              </div>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setSelectedRating("all")}
@@ -228,7 +261,7 @@ export function DoctorSearchPage() {
                       : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-blue-200 dark:border-slate-700 hover:border-blue-400 hover:shadow-md"
                   }`}
                 >
-                  A등급 <span className="ml-1 text-xs opacity-80">최우수</span>
+                  A급 <span className="ml-1 text-xs opacity-80">협조의사</span>
                 </button>
                 <button
                   onClick={() => setSelectedRating("B")}
@@ -238,7 +271,7 @@ export function DoctorSearchPage() {
                       : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-green-200 dark:border-slate-700 hover:border-green-400 hover:shadow-md"
                   }`}
                 >
-                  B등급 <span className="ml-1 text-xs opacity-80">우수</span>
+                  B급 <span className="ml-1 text-xs opacity-80">협조의사</span>
                 </button>
                 <button
                   onClick={() => setSelectedRating("C")}
@@ -248,7 +281,7 @@ export function DoctorSearchPage() {
                       : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-yellow-200 dark:border-slate-700 hover:border-yellow-400 hover:shadow-md"
                   }`}
                 >
-                  C등급 <span className="ml-1 text-xs opacity-80">양호</span>
+                  C급 <span className="ml-1 text-xs opacity-80">일반의사</span>
                 </button>
                 <button
                   onClick={() => setSelectedRating("D")}
@@ -258,33 +291,13 @@ export function DoctorSearchPage() {
                       : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-red-200 dark:border-slate-700 hover:border-red-400 hover:shadow-md"
                   }`}
                 >
-                  D등급 <span className="ml-1 text-xs opacity-80">보통</span>
+                  D급 <span className="ml-1 text-xs opacity-80">비의료인</span>
                 </button>
               </div>
             </div>
-
+<br/>
             <div className="grid gap-6 md:grid-cols-3">
-              {/* Search by Name */}
-              <div className="md:col-span-3">
-                <Label htmlFor="search" className="mb-2 block text-sm font-semibold text-foreground">
-                  의사명 또는 전문분야
-                </Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                  <Input
-                    id="search"
-                    placeholder="예: 김철수, 심장내과"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSearch()
-                      }
-                    }}
-                    className="pl-10 h-12 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 rounded-lg"
-                  />
-                </div>
-              </div>
+             
 
               {/* Hospital Filter */}
               <div>
@@ -588,9 +601,111 @@ export function DoctorSearchPage() {
           </Card>
         )}
 
+        {/* Rating Info Dialog */}
+        <Dialog open={isRatingInfoOpen} onOpenChange={setIsRatingInfoOpen}>
+          <DialogContent className="sm:max-w-[550px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <Award className="h-6 w-6 text-blue-600" />
+                의사 등급 안내
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                의사 등급은 전문성, 경력, 환자 만족도 등을 종합적으로 평가한 지표입니다.
+              </p>
+
+              <div className="space-y-3">
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                    A
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">최우수 등급</h4>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      15년 이상의 풍부한 임상 경험과 탁월한 전문성을 보유한 의료진입니다. 복잡한 증례에 대한 높은 치료
+                      성공률과 환자 만족도를 자랑합니다.
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                      <span className="text-xs font-medium text-blue-600">
+                        경력 15년 이상, 전문의 자격증, 우수 논문 실적
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                    B
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-green-900 dark:text-green-100 mb-1">우수 등급</h4>
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      10년 이상의 임상 경험을 갖춘 숙련된 의료진입니다. 안정적인 치료 결과와 높은 환자 신뢰도를 유지하고
+                      있습니다.
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <span className="text-xs font-medium text-green-600">
+                        경력 10년 이상, 전문의 자격증, 지속적인 연구 활동
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                    C
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-1">양호 등급</h4>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                      5년 이상의 임상 경험을 보유한 의료진입니다. 일반적인 질환에 대한 진료와 치료를 안정적으로
+                      제공합니다.
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <CheckCircle2 className="h-4 w-4 text-yellow-600" />
+                      <span className="text-xs font-medium text-yellow-600">
+                        경력 5년 이상, 전문의 자격증, 정기적인 보수 교육
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-red-500 to-red-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                    D
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-red-900 dark:text-red-100 mb-1">보통 등급</h4>
+                    <p className="text-sm text-red-700 dark:text-red-300">
+                      전문의 자격을 갖춘 의료진으로, 기본적인 진료와 치료를 제공합니다. 경력을 쌓아가는 단계의 의료진이
+                      포함됩니다.
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <CheckCircle2 className="h-4 w-4 text-red-600" />
+                      <span className="text-xs font-medium text-red-600">전문의 자격증, 기본 임상 경험</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-semibold">※ 참고:</span> 등급은 참고 자료이며, 실제 진료 선택 시에는 의사의 전문
+                  분야와 환자의 증상을 종합적으로 고려하시기 바랍니다.
+                  올리톡 협조의사 명단 탭을 사용하시기 바랍니다.
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+
         {/* Doctor Detail Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          
             {selectedDoctor && (
               <>
                 <DialogHeader>
@@ -690,7 +805,7 @@ export function DoctorSearchPage() {
                 </div>
               </>
             )}
-          </DialogContent>
+          
         </Dialog>
       </div>
     </div>
