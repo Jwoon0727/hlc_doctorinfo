@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: "협조의사명단",
   description: "협조의사/일반의사 의료진 찾기",
   generator: "v0.app",
+  manifest: "/manifest.json", 
   icons: {
     icon: [
       {
