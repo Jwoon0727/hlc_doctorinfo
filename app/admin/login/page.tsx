@@ -4,11 +4,12 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Lock } from "lucide-react"
+import { Lock, Home, AlertTriangle } from "lucide-react"
 import { validateAdminPassword, setAdminAuthentication } from "@/lib/auth"
 
 export default function AdminLoginPage() {
@@ -37,6 +38,14 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
       <Card className="w-full max-w-md shadow-xl">
+        <div className="p-4 pb-0">
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="gap-2">
+              <Home className="h-4 w-4" />
+            홈화면
+            </Button>
+          </Link>
+        </div>
         <CardHeader className="space-y-3 text-center">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
             <Lock className="w-8 h-8 text-white" />
@@ -48,6 +57,12 @@ export default function AdminLoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-800 font-medium">
+                 보안 경고: 암호를 타인에게 절대 알려주지 마세요.
+              </p>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="password">비밀번호</Label>
               <Input

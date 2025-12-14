@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { X, Smartphone, Download, CheckCircle } from "lucide-react"
+import { X, Download } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getCookie, setCookie } from "@/lib/cookies"
@@ -38,10 +39,16 @@ export function InstallPrompt() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" style={{ backgroundColor: '#FFFFFF' }}>
         <DialogHeader>
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600">
-            <Smartphone className="h-8 w-8 text-white" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+            <Image
+              src="/icons/logo192192.png"
+              alt="앱 아이콘"
+              width={80}
+              height={80}
+              className="rounded-full"
+            />
           </div>
           <DialogTitle className="text-center text-2xl font-bold">홈 화면에 추가하세요</DialogTitle>
           <DialogDescription className="text-center text-base">
@@ -49,30 +56,14 @@ export function InstallPrompt() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="flex items-start gap-3 rounded-lg bg-blue-50 p-3">
-            <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-blue-900">빠른 접근</p>
-              <p className="text-sm text-blue-700">앱처럼 홈 화면에서 바로 실행</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 rounded-lg bg-indigo-50 p-3">
-            <CheckCircle className="h-5 w-5 text-indigo-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-indigo-900">오프라인 사용</p>
-              <p className="text-sm text-indigo-700">인터넷 없이도 저장된 데이터 확인</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 rounded-lg bg-purple-50 p-3">
-            <CheckCircle className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-purple-900">알림 받기</p>
-              <p className="text-sm text-purple-700">새로운 의사 정보 업데이트 알림</p>
-            </div>
-          </div>
+        <div className="py-4 flex justify-center">
+          <Image
+            src="/icons/home.jpg"
+            alt="홈 화면 추가 안내"
+            width={300}
+            height={150}
+            className="rounded-lg object-contain"
+          />
         </div>
 
         <div className="mt-4 space-y-3">
@@ -81,13 +72,9 @@ export function InstallPrompt() {
             className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg"
           >
             <Download className="mr-2 h-5 w-5" />
-            네, 추가할게요
-          </Button>
-
-          <Button onClick={handleNo} variant="outline" className="w-full h-12 border-2 hover:bg-gray-50 bg-transparent">
-            <X className="mr-2 h-4 w-4" />
             나중에 할게요
           </Button>
+
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-2">이 메시지는 다시 표시되지 않습니다</p>

@@ -14,17 +14,17 @@ import { ArrowLeft, UserPlus, LogOut, Trash2, Building2, Stethoscope, Edit, Load
 import Link from "next/link"
 import { isAdminAuthenticated, setAdminAuthentication } from "@/lib/auth"
 import {
-  addDoctorToStorage,
-  getDoctorsFromStorage,
-  updateDoctorInStorage,
-  deleteDoctorFromStorage,
-  getHospitals, // Added
-  getDepartments, // Added
-  addHospitalToStorage, // Added
-  deleteHospitalFromStorage, // Added
-  addDepartmentToStorage, // Added
-  deleteDepartmentFromStorage, // Added
-} from "@/lib/storage"
+  addDoctorToSupabase,
+  getDoctorsFromSupabase,
+  updateDoctorInSupabase,
+  deleteDoctorFromSupabase,
+  getHospitalsFromSupabase,
+  getDepartmentsFromSupabase,
+  addHospitalToSupabase,
+  deleteHospitalFromSupabase,
+  addDepartmentToSupabase,
+  deleteDepartmentFromSupabase,
+} from "@/lib/supabase/doctors"
 import type { Doctor, Hospital, Department } from "@/lib/mock-data"
 import {
   Dialog,
@@ -48,6 +48,7 @@ export default function AddDoctorPage() {
   const [isDeletingDepartment, setIsDeletingDepartment] = useState<string | null>(null)
 
   const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [existingDoctors, setExistingDoctors] = useState<Doctor[]>([])
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
@@ -93,62 +94,64 @@ export default function AddDoctorPage() {
     }
   }, [router])
 
-  const loadDoctors = () => {
-    const doctors = getDoctorsFromStorage()
-    setExistingDoctors(doctors)
+  const loadDoctors = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const doctors = await getDoctorsFromSupabase()
+      setExistingDoctors(doctors)
+    } catch (err) {
+      console.error("Failed to load doctors:", err)
+      setError("의사 목록을 불러오는데 실패했습니다.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const loadHospitalsAndDepartments = () => {
-    setHospitalsList(getHospitals())
-    setDepartmentsList(getDepartments())
+  const loadHospitalsAndDepartments = async () => {
+    try {
+      setError(null)
+      const [hospitals, departments] = await Promise.all([
+        getHospitalsFromSupabase(),
+        getDepartmentsFromSupabase(),
+      ])
+      setHospitalsList(hospitals)
+      setDepartmentsList(departments)
+    } catch (err) {
+      console.error("Failed to load hospitals/departments:", err)
+      setError("병원/진료과 목록을 불러오는데 실패했습니다.")
+    }
   }
 
-  useEffect(() => {
-    const handleHospitalsChange = () => {
-      loadHospitalsAndDepartments()
-    }
-
-    const handleDepartmentsChange = () => {
-      loadHospitalsAndDepartments()
-    }
-
-    window.addEventListener("hospitals_data_change", handleHospitalsChange)
-    window.addEventListener("departments_data_change", handleDepartmentsChange)
-
-    return () => {
-      window.removeEventListener("hospitals_data_change", handleHospitalsChange)
-      window.removeEventListener("departments_data_change", handleDepartmentsChange)
-    }
-  }, [])
+  // Removed event listeners as we're using Supabase now
 
   const handleLogout = () => {
     setAdminAuthentication(false)
     router.push("/admin/login")
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setSuccess(false)
+    setError(null)
 
-    const newDoctor = {
-      id: Date.now().toString(),
-      name: formData.name,
-      rating: formData.rating,
-      specialization: formData.specialization,
-      experience_years: Number.parseInt(formData.experience_years),
-      hospital_id: formData.hospital_id,
-      department_id: formData.department_id,
-      email: formData.email,
-      phone: formData.phone,
-      notes: formData.notes,
-    }
+    try {
+      const newDoctor = {
+        name: formData.name,
+        rating: formData.rating,
+        specialization: formData.specialization,
+        experience_years: formData.experience_years, // 전문과목 (텍스트)
+        hospital_id: formData.hospital_id,
+        department_id: formData.department_id,
+        email: formData.email,
+        phone: formData.phone,
+        notes: formData.notes,
+      }
 
-    setTimeout(() => {
-      addDoctorToStorage(newDoctor)
+      await addDoctorToSupabase(newDoctor)
       setSuccess(true)
-      setIsLoading(false)
-      loadDoctors()
+      await loadDoctors()
 
       setFormData({
         name: "",
@@ -163,7 +166,12 @@ export default function AddDoctorPage() {
       })
 
       setTimeout(() => setSuccess(false), 3000)
-    }, 800)
+    } catch (err) {
+      console.error("Failed to add doctor:", err)
+      setError("의사 추가에 실패했습니다. 다시 시도해주세요.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleChange = (field: string, value: string) => {
@@ -199,7 +207,7 @@ export default function AddDoctorPage() {
       name: doctor.name,
       rating: doctor.rating,
       specialization: doctor.specialization,
-      experience_years: doctor.experience_years.toString(),
+      experience_years: typeof doctor.experience_years === "number" ? doctor.experience_years.toString() : doctor.experience_years,
       hospital_id: doctor.hospital_id,
       department_id: doctor.department_id,
       email: doctor.email,
@@ -209,105 +217,133 @@ export default function AddDoctorPage() {
     setIsEditModalOpen(true)
   }
 
-  const handleUpdateDoctor = () => {
+  const handleUpdateDoctor = async () => {
     if (!editingDoctor) return
 
     setIsUpdating(true)
+    setError(null)
 
-    const updatedDoctor: Doctor = {
-      ...editingDoctor,
-      name: editFormData.name,
-      rating: editFormData.rating,
-      specialization: editFormData.specialization,
-      experience_years: Number.parseInt(editFormData.experience_years),
-      hospital_id: editFormData.hospital_id,
-      department_id: editFormData.department_id,
-      email: editFormData.email,
-      phone: editFormData.phone,
-      notes: editFormData.notes,
-    }
+    try {
+      const updatedDoctor: Doctor = {
+        ...editingDoctor,
+        name: editFormData.name,
+        rating: editFormData.rating,
+        specialization: editFormData.specialization,
+        experience_years: editFormData.experience_years, // 전문과목 (텍스트)
+        hospital_id: editFormData.hospital_id,
+        department_id: editFormData.department_id,
+        email: editFormData.email,
+        phone: editFormData.phone,
+        notes: editFormData.notes,
+      }
 
-    setTimeout(() => {
-      updateDoctorInStorage(editingDoctor.id, updatedDoctor)
-      loadDoctors()
-      setIsUpdating(false)
+      await updateDoctorInSupabase(editingDoctor.id, updatedDoctor)
+      await loadDoctors()
       setEditingDoctor(null)
       setIsEditModalOpen(false)
-    }, 800)
+    } catch (err) {
+      console.error("Failed to update doctor:", err)
+      setError("의사 정보 수정에 실패했습니다. 다시 시도해주세요.")
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
-  const handleDeleteDoctor = (doctorId: string) => {
+  const handleDeleteDoctor = async (doctorId: string) => {
     setIsDeleting(doctorId)
+    setError(null)
 
-    setTimeout(() => {
-      deleteDoctorFromStorage(doctorId)
-      loadDoctors()
+    try {
+      await deleteDoctorFromSupabase(doctorId)
+      await loadDoctors()
       setDeleteConfirmId(null)
+    } catch (err) {
+      console.error("Failed to delete doctor:", err)
+      setError("의사 삭제에 실패했습니다. 다시 시도해주세요.")
+    } finally {
       setIsDeleting(null)
-    }, 800)
+    }
   }
 
-  const handleAddHospital = (e: React.FormEvent) => {
+  const handleAddHospital = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newHospital.name || !newHospital.address || !newHospital.phone) return
 
     setIsAddingHospital(true)
+    setError(null)
 
-    const hospital: Hospital = {
-      id: Date.now().toString(),
-      name: newHospital.name,
-      address: newHospital.address,
-      phone: newHospital.phone,
-    }
+    try {
+      const hospital = {
+        name: newHospital.name,
+        address: newHospital.address,
+        phone: newHospital.phone,
+      }
 
-    setTimeout(() => {
-      addHospitalToStorage(hospital)
+      await addHospitalToSupabase(hospital)
       setNewHospital({ name: "", address: "", phone: "" })
-      loadHospitalsAndDepartments()
+      await loadHospitalsAndDepartments()
+    } catch (err) {
+      console.error("Failed to add hospital:", err)
+      setError("병원 추가에 실패했습니다. 다시 시도해주세요.")
+    } finally {
       setIsAddingHospital(false)
-    }, 800)
+    }
   }
 
-  const handleAddDepartment = (e: React.FormEvent) => {
+  const handleAddDepartment = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newDepartment.name) return
 
     setIsAddingDepartment(true)
+    setError(null)
 
-    const department: Department = {
-      id: Date.now().toString(),
-      name: newDepartment.name,
-    }
+    try {
+      const department = {
+        name: newDepartment.name,
+      }
 
-    setTimeout(() => {
-      addDepartmentToStorage(department)
+      await addDepartmentToSupabase(department)
       setNewDepartment({ name: "" })
-      loadHospitalsAndDepartments()
+      await loadHospitalsAndDepartments()
+    } catch (err) {
+      console.error("Failed to add department:", err)
+      setError("진료과 추가에 실패했습니다. 다시 시도해주세요.")
+    } finally {
       setIsAddingDepartment(false)
-    }, 800)
+    }
   }
 
-  const handleDeleteHospital = (hospitalId: string) => {
+  const handleDeleteHospital = async (hospitalId: string) => {
     if (confirm("이 병원을 삭제하시겠습니까?")) {
       setIsDeletingHospital(hospitalId)
+      setError(null)
 
-      setTimeout(() => {
-        deleteHospitalFromStorage(hospitalId)
-        loadHospitalsAndDepartments()
+      try {
+        await deleteHospitalFromSupabase(hospitalId)
+        await loadHospitalsAndDepartments()
+      } catch (err) {
+        console.error("Failed to delete hospital:", err)
+        setError("병원 삭제에 실패했습니다. 다시 시도해주세요.")
+      } finally {
         setIsDeletingHospital(null)
-      }, 800)
+      }
     }
   }
 
-  const handleDeleteDepartment = (departmentId: string) => {
+  const handleDeleteDepartment = async (departmentId: string) => {
     if (confirm("이 진료과를 삭제하시겠습니까?")) {
       setIsDeletingDepartment(departmentId)
+      setError(null)
 
-      setTimeout(() => {
-        deleteDepartmentFromStorage(departmentId)
-        loadHospitalsAndDepartments()
+      try {
+        await deleteDepartmentFromSupabase(departmentId)
+        await loadHospitalsAndDepartments()
+      } catch (err) {
+        console.error("Failed to delete department:", err)
+        setError("진료과 삭제에 실패했습니다. 다시 시도해주세요.")
+      } finally {
         setIsDeletingDepartment(null)
-      }, 800)
+      }
     }
   }
 
@@ -407,10 +443,10 @@ export default function AddDoctorPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="A">A 등급</SelectItem>
-                            <SelectItem value="B">B 등급</SelectItem>
-                            <SelectItem value="C">C 등급</SelectItem>
-                            <SelectItem value="D">D 등급</SelectItem>
+                            <SelectItem value="A">A 급</SelectItem>
+                            <SelectItem value="B">B 급</SelectItem>
+                            <SelectItem value="C">C 급</SelectItem>
+                            <SelectItem value="D">D 급</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -429,16 +465,15 @@ export default function AddDoctorPage() {
                         />
                       </div>
 
-                      {/* Experience Years */}
+                      {/* Specialty Subject */}
                       <div className="space-y-2">
                         <Label htmlFor="experience">
-                          경력 (년) <span className="text-red-500">*</span>
+                          전문과목 <span className="text-red-500">*</span>
                         </Label>
                         <Input
                           id="experience"
-                          type="number"
-                          min="0"
-                          placeholder="예: 15"
+                          type="text"
+                          placeholder="예: 심장내과, 정형외과 등"
                           value={formData.experience_years}
                           onChange={(e) => handleChange("experience_years", e.target.value)}
                           required
@@ -536,6 +571,13 @@ export default function AddDoctorPage() {
                       </div>
                     )}
 
+                    {/* Error Message */}
+                    {error && (
+                      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-sm text-red-600 font-medium">✗ {error}</p>
+                      </div>
+                    )}
+
                     {/* Submit Button */}
                     <Button type="submit" disabled={isLoading} className="w-full h-11 text-base font-semibold">
                       {isLoading ? (
@@ -590,7 +632,7 @@ export default function AddDoctorPage() {
                               <p className="text-sm text-muted-foreground">
                                 {hospital?.name} · {department?.name}
                               </p>
-                              <p className="text-sm text-muted-foreground">경력: {doctor.experience_years}년</p>
+                              <p className="text-sm text-muted-foreground">전문과목: {doctor.experience_years}</p>
                               <p className="text-sm text-muted-foreground">전화번호: {doctor.phone}</p>
                             </div>
                             <div className="flex gap-2">
@@ -885,12 +927,13 @@ export default function AddDoctorPage() {
                 />
               </div>
 
-              {/* Edit Experience */}
+              {/* Edit Specialty Subject */}
               <div className="space-y-2">
-                <Label htmlFor="edit-experience">경력 (년)</Label>
+                <Label htmlFor="edit-experience">전문과목</Label>
                 <Input
                   id="edit-experience"
-                  type="number"
+                  type="text"
+                  placeholder="예: 심장내과, 정형외과 등"
                   value={editFormData.experience_years}
                   onChange={(e) => handleEditChange("experience_years", e.target.value)}
                   required

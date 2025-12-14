@@ -5,7 +5,7 @@ export type Doctor = {
   name: string
   rating: "A" | "B" | "C" | "D"
   specialization: string
-  experience_years: number
+  experience_years: string | number // 전문과목 (텍스트 또는 숫자)
   hospital_id: string
   department_id: string
   email: string

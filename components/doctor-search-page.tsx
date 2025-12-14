@@ -30,12 +30,12 @@ import {
   type Department,
   type Doctor,
   type Hospital,
-  getDepartments,
-  getDoctors,
-  getHospitals,
-  getHospitalById,
-  getDepartmentById,
-} from "@/lib/storage"
+} from "@/lib/mock-data"
+import {
+  getDoctorsFromSupabase,
+  getHospitalsFromSupabase,
+  getDepartmentsFromSupabase,
+} from "@/lib/supabase/doctors"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { InstallPrompt } from "@/components/install-prompt"
@@ -87,38 +87,54 @@ export function DoctorSearchPage() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Helper functions to get hospital/department by ID
+  const getHospitalById = (hospitalId: string): Hospital | undefined => {
+    return hospitals.find((h) => h.id === hospitalId)
+  }
+
+  const getDepartmentById = (departmentId: string): Department | undefined => {
+    return departments.find((d) => d.id === departmentId)
+  }
 
   useEffect(() => {
-    // Initial load
-    setHospitals(getHospitals())
-    setDepartments(getDepartments())
-    setDoctors(getDoctors())
+    // Initial load from Supabase
+    const loadData = async () => {
+      try {
+        setIsInitialLoading(true)
+        setError(null)
+        
+        const [hospitalsData, departmentsData, doctorsData] = await Promise.all([
+          getHospitalsFromSupabase(),
+          getDepartmentsFromSupabase(),
+          getDoctorsFromSupabase(),
+        ])
 
-    // Listen for storage changes from other tabs
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "doctors_data") {
-        setDoctors(getDoctors())
+        setHospitals(hospitalsData)
+        setDepartments(departmentsData)
+        setDoctors(doctorsData)
+      } catch (err) {
+        console.error("Failed to load data:", err)
+        setError("데이터를 불러오는데 실패했습니다. 페이지를 새로고침해주세요.")
+      } finally {
+        setIsInitialLoading(false)
       }
     }
 
-    // Listen for custom event from same tab
-    const handleCustomStorageChange = () => {
-      setDoctors(getDoctors())
-    }
-
-    window.addEventListener("storage", handleStorageChange)
-    window.addEventListener("doctors_data_change", handleCustomStorageChange)
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange)
-      window.removeEventListener("doctors_data_change", handleCustomStorageChange)
-    }
+    loadData()
   }, [])
 
   const filteredDoctors: DoctorWithDetails[] = doctors
     .map((doctor) => {
-      const hospital = getHospitalById(doctor.hospital_id)!
-      const department = getDepartmentById(doctor.department_id)!
+      const hospital = getHospitalById(doctor.hospital_id)
+      const department = getDepartmentById(doctor.department_id)
+
+      // Skip if hospital or department not found
+      if (!hospital || !department) {
+        return null
+      }
 
       return {
         ...doctor,
@@ -132,13 +148,21 @@ export function DoctorSearchPage() {
         },
       }
     })
+    .filter((d): d is DoctorWithDetails => d !== null)
     .filter((d) => {
       if (appliedRating && appliedRating !== "all" && d.rating !== appliedRating) return false
       if (appliedHospital && appliedHospital !== "all" && d.hospital_id !== appliedHospital) return false
       if (appliedDepartment && appliedDepartment !== "all" && d.department_id !== appliedDepartment) return false
       if (appliedSearchQuery && appliedSearchQuery.trim()) {
         const query = appliedSearchQuery.toLowerCase()
-        if (!d.name.toLowerCase().includes(query) && !d.specialization.toLowerCase().includes(query)) return false
+        const experienceYearsStr = typeof d.experience_years === "string" 
+          ? d.experience_years 
+          : d.experience_years.toString()
+        if (
+          !d.name.toLowerCase().includes(query) && 
+          !d.specialization.toLowerCase().includes(query) &&
+          !experienceYearsStr.toLowerCase().includes(query)
+        ) return false
       }
       return true
     })
@@ -452,8 +476,28 @@ export function DoctorSearchPage() {
           </CardContent>
         </Card>
 
+        {/* Initial Loading */}
+        {isInitialLoading && (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+            <p className="text-lg font-medium text-slate-600">데이터를 불러오는 중...</p>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <Card className="mb-6 border-red-200 bg-red-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-red-600">
+                <HelpCircle className="h-5 w-5" />
+                <p className="font-medium">{error}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Loading Overlay */}
-        {isLoading && (
+        {isLoading && !isInitialLoading && (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
             <p className="text-lg font-medium text-slate-600">의사 정보를 검색하고 있습니다...</p>
@@ -461,7 +505,7 @@ export function DoctorSearchPage() {
         )}
 
         {/* Welcome Message */}
-        {!hasSearched && !isLoading && (
+        {!hasSearched && !isLoading && !isInitialLoading && (
           <Card className="py-16 text-center bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-dashed border-blue-300 dark:border-blue-700">
             <div className="p-4 space-y-4">
               <div className="flex justify-center">
@@ -495,7 +539,7 @@ export function DoctorSearchPage() {
         )}
 
         {/* Results Section */}
-        {hasSearched && !isLoading && (
+        {hasSearched && !isLoading && !isInitialLoading && (
           <>
             {/* Total Count */}
             <div className="mb-6 text-center">
@@ -516,9 +560,9 @@ export function DoctorSearchPage() {
                   <div className="p-4">
                     <div className="flex items-start justify-between">
                       <div>
+                      <Stethoscope className="h-4 w-4" />
                         <div className="text-xl font-bold">{doctor.name}</div>
                         <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                          <Stethoscope className="h-4 w-4" />
                           {doctor.specialization}
                         </p>
                       </div>
@@ -527,8 +571,12 @@ export function DoctorSearchPage() {
                     <div className="space-y-3 mt-4">
                       <div className="flex items-center gap-2 text-sm">
                         <Award className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">경력:</span>
-                        <span className="font-medium">{doctor.experience_years}년</span>
+                        <span className="text-muted-foreground">전문과목:</span>
+                        <span className="font-medium">
+                          {typeof doctor.experience_years === "string" 
+                            ? doctor.experience_years 
+                            : doctor.experience_years}
+                        </span>
                       </div>
 
                       <div className="flex items-start gap-2 text-sm">
@@ -546,6 +594,7 @@ export function DoctorSearchPage() {
 
                       <div className="flex items-center gap-3 text-sm">
                         <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground text-sm">병원대표:</span>
                         <a
                           href={`tel:${doctor.hospital.phone}`}
                           className="text-blue-600 hover:underline dark:text-blue-400"
@@ -558,7 +607,7 @@ export function DoctorSearchPage() {
                         <div className="flex items-center gap-3 text-sm">
                           <Phone className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           <div>
-                            <span className="text-muted-foreground text-sm">직통:</span>
+                            <span className="text-muted-foreground text-sm">의사직통:</span>
                             <a
                               href={`tel:${doctor.phone}`}
                               className="ml-2 text-blue-600 hover:underline dark:text-blue-400 font-medium"
@@ -590,7 +639,7 @@ export function DoctorSearchPage() {
         )}
 
         {/* Empty State */}
-        {hasSearched && !isLoading && filteredDoctors.length === 0 && (
+        {hasSearched && !isLoading && !isInitialLoading && filteredDoctors.length === 0 && (
           <Card className="py-12 text-center">
             <div className="p-4">
               <p className="text-lg text-muted-foreground">검색 조건에 맞는 의사를 찾을 수 없습니다.</p>
@@ -705,7 +754,7 @@ export function DoctorSearchPage() {
 
         {/* Doctor Detail Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          
+          <DialogContent className="sm:max-w-[600px]">
             {selectedDoctor && (
               <>
                 <DialogHeader>
@@ -728,8 +777,12 @@ export function DoctorSearchPage() {
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 text-base">
                       <Award className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-muted-foreground">경력:</span>
-                      <span className="font-semibold">{selectedDoctor.experience_years}년</span>
+                      <span className="text-muted-foreground">전문과목:</span>
+                      <span className="font-semibold">
+                        {typeof selectedDoctor.experience_years === "string" 
+                          ? selectedDoctor.experience_years 
+                          : selectedDoctor.experience_years}
+                      </span>
                     </div>
 
                     <div className="flex items-start gap-3 text-base">
@@ -805,7 +858,7 @@ export function DoctorSearchPage() {
                 </div>
               </>
             )}
-          
+          </DialogContent>
         </Dialog>
       </div>
     </div>
