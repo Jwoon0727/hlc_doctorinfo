@@ -160,7 +160,6 @@ export function DoctorSearchPage() {
           : d.experience_years.toString()
         if (
           !d.name.toLowerCase().includes(query) && 
-          !d.specialization.toLowerCase().includes(query) &&
           !experienceYearsStr.toLowerCase().includes(query)
         ) return false
       }
@@ -305,7 +304,7 @@ export function DoctorSearchPage() {
                       : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-yellow-200 dark:border-slate-700 hover:border-yellow-400 hover:shadow-md"
                   }`}
                 >
-                  C급 <span className="ml-1 text-xs opacity-80">일반의사</span>
+                 일반의사
                 </button>
                 <button
                   onClick={() => setSelectedRating("D")}
@@ -315,7 +314,7 @@ export function DoctorSearchPage() {
                       : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-red-200 dark:border-slate-700 hover:border-red-400 hover:shadow-md"
                   }`}
                 >
-                  D급 <span className="ml-1 text-xs opacity-80">비의료인</span>
+                  비의료인
                 </button>
               </div>
             </div>
@@ -563,10 +562,10 @@ export function DoctorSearchPage() {
                       <Stethoscope className="h-4 w-4" />
                         <div className="text-xl font-bold">{doctor.name}</div>
                         <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                          {doctor.specialization}
+                         
                         </p>
                       </div>
-                      <Badge className={ratingColors[doctor.rating]}>{doctor.rating}등급</Badge>
+                      <Badge className={ratingColors[doctor.rating]}>{doctor.rating}급</Badge>
                     </div>
                     <div className="space-y-3 mt-4">
                       <div className="flex items-center gap-2 text-sm">
@@ -763,7 +762,7 @@ export function DoctorSearchPage() {
                       <DialogTitle className="text-2xl">{selectedDoctor.name}</DialogTitle>
                       <DialogDescription className="mt-2 flex items-center gap-2 text-base">
                         <Stethoscope className="h-4 w-4" />
-                        {selectedDoctor.specialization}
+                        
                       </DialogDescription>
                     </div>
                     <Badge className={`${ratingColors[selectedDoctor.rating]} text-lg px-3 py-1`}>

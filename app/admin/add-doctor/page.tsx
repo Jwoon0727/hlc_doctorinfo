@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, UserPlus, LogOut, Trash2, Building2, Stethoscope, Edit, Loader2 } from "lucide-react"
+import { ArrowLeft, UserPlus, LogOut, Trash2, Building2, Stethoscope, Edit, Loader2, Search, X } from "lucide-react"
 import Link from "next/link"
 import { isAdminAuthenticated, setAdminAuthentication } from "@/lib/auth"
 import {
@@ -34,7 +34,15 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs" // Added
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 export default function AddDoctorPage() {
   const router = useRouter()
@@ -58,6 +66,17 @@ export default function AddDoctorPage() {
   const [departmentsList, setDepartmentsList] = useState<Department[]>([])
   const [newHospital, setNewHospital] = useState({ name: "", address: "", phone: "" })
   const [newDepartment, setNewDepartment] = useState({ name: "" })
+
+  // Pagination states
+  const [doctorsPage, setDoctorsPage] = useState(1)
+  const [hospitalsPage, setHospitalsPage] = useState(1)
+  const [departmentsPage, setDepartmentsPage] = useState(1)
+  const itemsPerPage = 5
+
+  // Search states
+  const [doctorsSearch, setDoctorsSearch] = useState("")
+  const [hospitalsSearch, setHospitalsSearch] = useState("")
+  const [departmentsSearch, setDepartmentsSearch] = useState("")
 
   const [formData, setFormData] = useState({
     name: "",
@@ -443,10 +462,10 @@ export default function AddDoctorPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="A">A 급</SelectItem>
-                            <SelectItem value="B">B 급</SelectItem>
-                            <SelectItem value="C">C 급</SelectItem>
-                            <SelectItem value="D">D 급</SelectItem>
+                            <SelectItem value="A">A 급 협조의사</SelectItem>
+                            <SelectItem value="B">B 급 협조의사</SelectItem>
+                            <SelectItem value="C">일반의사</SelectItem>
+                            <SelectItem value="D">비의료인</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -597,76 +616,200 @@ export default function AddDoctorPage() {
               <Card className="shadow-xl">
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold">기존 의사 명단</CardTitle>
-                  <CardDescription>등록된 의사 목록 (총 {existingDoctors.length}명)</CardDescription>
+                  <CardDescription>
+                    {doctorsSearch
+                      ? `검색 결과: ${(() => {
+                          const filtered = existingDoctors.filter((doctor) => {
+                            const searchLower = doctorsSearch.toLowerCase()
+                            const hospital = getHospitalById(doctor.hospital_id)
+                            const department = getDepartmentById(doctor.department_id)
+                            return (
+                              doctor.name.toLowerCase().includes(searchLower) ||
+                              doctor.specialization.toLowerCase().includes(searchLower) ||
+                              (typeof doctor.experience_years === "string"
+                                ? doctor.experience_years.toLowerCase().includes(searchLower)
+                                : doctor.experience_years.toString().toLowerCase().includes(searchLower)) ||
+                              hospital?.name.toLowerCase().includes(searchLower) ||
+                              department?.name.toLowerCase().includes(searchLower) ||
+                              doctor.email.toLowerCase().includes(searchLower) ||
+                              (doctor.phone && doctor.phone.includes(searchLower))
+                            )
+                          })
+                          return filtered.length
+                        })()}명 (전체 ${existingDoctors.length}명)`
+                      : `등록된 의사 목록 (총 ${existingDoctors.length}명)`}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3 max-h-[800px] overflow-y-auto pr-2">
-                    {existingDoctors.map((doctor) => {
-                      const hospital = getHospitalById(doctor.hospital_id)
-                      const department = getDepartmentById(doctor.department_id)
+                  {/* Search Input */}
+                  <div className="mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="의사명, 전문분야, 병원명으로 검색..."
+                        value={doctorsSearch}
+                        onChange={(e) => {
+                          setDoctorsSearch(e.target.value)
+                          setDoctorsPage(1) // Reset to first page on search
+                        }}
+                        className="pl-10 pr-10"
+                      />
+                      {doctorsSearch && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                          onClick={() => {
+                            setDoctorsSearch("")
+                            setDoctorsPage(1)
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {(() => {
+                      // Filter doctors based on search
+                      const filteredDoctors = existingDoctors.filter((doctor) => {
+                        if (!doctorsSearch.trim()) return true
+                        const searchLower = doctorsSearch.toLowerCase()
+                        const hospital = getHospitalById(doctor.hospital_id)
+                        const department = getDepartmentById(doctor.department_id)
+                        return (
+                          doctor.name.toLowerCase().includes(searchLower) ||
+                          doctor.specialization.toLowerCase().includes(searchLower) ||
+                          (typeof doctor.experience_years === "string"
+                            ? doctor.experience_years.toLowerCase().includes(searchLower)
+                            : doctor.experience_years.toString().toLowerCase().includes(searchLower)) ||
+                          hospital?.name.toLowerCase().includes(searchLower) ||
+                          department?.name.toLowerCase().includes(searchLower) ||
+                          doctor.email.toLowerCase().includes(searchLower) ||
+                          (doctor.phone && doctor.phone.includes(searchLower))
+                        )
+                      })
+
+                      const startIndex = (doctorsPage - 1) * itemsPerPage
+                      const endIndex = startIndex + itemsPerPage
+                      const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex)
+                      const totalPages = Math.ceil(filteredDoctors.length / itemsPerPage)
 
                       return (
-                        <div
-                          key={doctor.id}
-                          className="p-4 border rounded-lg hover:shadow-md transition-shadow bg-white"
-                        >
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <h3 className="font-semibold text-lg">{doctor.name}</h3>
-                                <span
-                                  className={`px-2 py-0.5 text-xs font-medium rounded ${
-                                    doctor.rating === "A"
-                                      ? "bg-red-100 text-red-700"
-                                      : doctor.rating === "B"
-                                        ? "bg-orange-100 text-orange-700"
-                                        : doctor.rating === "C"
-                                          ? "bg-yellow-100 text-yellow-700"
-                                          : "bg-green-100 text-green-700"
-                                  }`}
-                                >
-                                  {doctor.rating}등급
-                                </span>
+                        <>
+                          {paginatedDoctors.map((doctor) => {
+                            const hospital = getHospitalById(doctor.hospital_id)
+                            const department = getDepartmentById(doctor.department_id)
+
+                            return (
+                              <div
+                                key={doctor.id}
+                                className="p-4 border rounded-lg hover:shadow-md transition-shadow bg-white"
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <h3 className="font-semibold text-lg">{doctor.name}</h3>
+                                      <span
+                                        className={`px-2 py-0.5 text-xs font-medium rounded ${
+                                          doctor.rating === "A"
+                                            ? "bg-red-100 text-red-700"
+                                            : doctor.rating === "B"
+                                              ? "bg-orange-100 text-orange-700"
+                                              : doctor.rating === "C"
+                                                ? "bg-yellow-100 text-yellow-700"
+                                                : "bg-green-100 text-green-700"
+                                        }`}
+                                      >
+                                        {doctor.rating}등급
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">{doctor.specialization}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {hospital?.name} · {department?.name}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">전문과목: {doctor.experience_years}</p>
+                                    <p className="text-sm text-muted-foreground">전화번호: {doctor.phone}</p>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleEditClick(doctor)}
+                                      className="gap-1"
+                                    >
+                                      <Edit className="w-3 h-3" />
+                                      수정
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleDelete(doctor.id)}
+                                      disabled={isDeleting === doctor.id}
+                                      className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      {isDeleting === doctor.id ? (
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="w-3 h-3" />
+                                      )}
+                                      삭제
+                                    </Button>
+                                  </div>
+                                </div>
                               </div>
-                              <p className="text-sm text-muted-foreground">{doctor.specialization}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {hospital?.name} · {department?.name}
-                              </p>
-                              <p className="text-sm text-muted-foreground">전문과목: {doctor.experience_years}</p>
-                              <p className="text-sm text-muted-foreground">전화번호: {doctor.phone}</p>
+                            )
+                          })}
+                          {filteredDoctors.length === 0 && (
+                            <p className="text-center text-muted-foreground py-8">
+                              {doctorsSearch ? "검색 결과가 없습니다." : "등록된 의사가 없습니다."}
+                            </p>
+                          )}
+                          {filteredDoctors.length > 0 && totalPages > 1 && (
+                            <div className="mt-6">
+                              <Pagination>
+                                <PaginationContent>
+                                  <PaginationItem>
+                                    <PaginationPrevious
+                                      href="#"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        if (doctorsPage > 1) setDoctorsPage(doctorsPage - 1)
+                                      }}
+                                      className={doctorsPage === 1 ? "pointer-events-none opacity-50" : ""}
+                                    />
+                                  </PaginationItem>
+                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                    <PaginationItem key={page}>
+                                      <PaginationLink
+                                        href="#"
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          setDoctorsPage(page)
+                                        }}
+                                        isActive={doctorsPage === page}
+                                      >
+                                        {page}
+                                      </PaginationLink>
+                                    </PaginationItem>
+                                  ))}
+                                  <PaginationItem>
+                                    <PaginationNext
+                                      href="#"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        if (doctorsPage < totalPages) setDoctorsPage(doctorsPage + 1)
+                                      }}
+                                      className={doctorsPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                                    />
+                                  </PaginationItem>
+                                </PaginationContent>
+                              </Pagination>
                             </div>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEditClick(doctor)}
-                                className="gap-1"
-                              >
-                                <Edit className="w-3 h-3" />
-                                수정
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(doctor.id)}
-                                disabled={isDeleting === doctor.id}
-                                className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              >
-                                {isDeleting === doctor.id ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  <Trash2 className="w-3 h-3" />
-                                )}
-                                삭제
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
+                          )}
+                        </>
                       )
-                    })}
-                    {existingDoctors.length === 0 && (
-                      <p className="text-center text-muted-foreground py-8">등록된 의사가 없습니다.</p>
-                    )}
+                    })()}
                   </div>
                 </CardContent>
               </Card>
@@ -738,37 +881,145 @@ export default function AddDoctorPage() {
               <Card className="shadow-xl">
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold">등록된 병원</CardTitle>
-                  <CardDescription>총 {hospitalsList.length}개</CardDescription>
+                  <CardDescription>
+                    {hospitalsSearch
+                      ? `검색 결과: ${hospitalsList.filter((h) => {
+                          const searchLower = hospitalsSearch.toLowerCase()
+                          return (
+                            h.name.toLowerCase().includes(searchLower) ||
+                            h.address.toLowerCase().includes(searchLower) ||
+                            h.phone.includes(searchLower)
+                          )
+                        }).length}개 (전체 ${hospitalsList.length}개)`
+                      : `총 ${hospitalsList.length}개`}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                    {hospitalsList.map((hospital) => (
-                      <div
-                        key={hospital.id}
-                        className="p-4 border rounded-lg bg-white hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold text-lg">{hospital.name}</h3>
-                            <p className="text-sm text-gray-600 mt-1">{hospital.address}</p>
-                            <p className="text-sm text-gray-600">{hospital.phone}</p>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteHospital(hospital.id)}
-                            disabled={isDeletingHospital === hospital.id}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            {isDeletingHospital === hospital.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                  {/* Search Input */}
+                  <div className="mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="병원명, 주소, 전화번호로 검색..."
+                        value={hospitalsSearch}
+                        onChange={(e) => {
+                          setHospitalsSearch(e.target.value)
+                          setHospitalsPage(1)
+                        }}
+                        className="pl-10 pr-10"
+                      />
+                      {hospitalsSearch && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                          onClick={() => {
+                            setHospitalsSearch("")
+                            setHospitalsPage(1)
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {(() => {
+                      // Filter hospitals based on search
+                      const filteredHospitals = hospitalsList.filter((hospital) => {
+                        if (!hospitalsSearch.trim()) return true
+                        const searchLower = hospitalsSearch.toLowerCase()
+                        return (
+                          hospital.name.toLowerCase().includes(searchLower) ||
+                          hospital.address.toLowerCase().includes(searchLower) ||
+                          hospital.phone.includes(searchLower)
+                        )
+                      })
+
+                      const startIndex = (hospitalsPage - 1) * itemsPerPage
+                      const endIndex = startIndex + itemsPerPage
+                      const paginatedHospitals = filteredHospitals.slice(startIndex, endIndex)
+                      const totalPages = Math.ceil(filteredHospitals.length / itemsPerPage)
+
+                      return (
+                        <>
+                          {paginatedHospitals.map((hospital) => (
+                            <div
+                              key={hospital.id}
+                              className="p-4 border rounded-lg bg-white hover:shadow-md transition-shadow"
+                            >
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="font-semibold text-lg">{hospital.name}</h3>
+                                  <p className="text-sm text-gray-600 mt-1">{hospital.address}</p>
+                                  <p className="text-sm text-gray-600">{hospital.phone}</p>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDeleteHospital(hospital.id)}
+                                  disabled={isDeletingHospital === hospital.id}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  {isDeletingHospital === hospital.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-4 h-4" />
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                          {filteredHospitals.length === 0 && (
+                            <p className="text-center text-muted-foreground py-8">
+                              {hospitalsSearch ? "검색 결과가 없습니다." : "등록된 병원이 없습니다."}
+                            </p>
+                          )}
+                          {filteredHospitals.length > 0 && totalPages > 1 && (
+                            <div className="mt-6">
+                              <Pagination>
+                                <PaginationContent>
+                                  <PaginationItem>
+                                    <PaginationPrevious
+                                      href="#"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        if (hospitalsPage > 1) setHospitalsPage(hospitalsPage - 1)
+                                      }}
+                                      className={hospitalsPage === 1 ? "pointer-events-none opacity-50" : ""}
+                                    />
+                                  </PaginationItem>
+                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                    <PaginationItem key={page}>
+                                      <PaginationLink
+                                        href="#"
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          setHospitalsPage(page)
+                                        }}
+                                        isActive={hospitalsPage === page}
+                                      >
+                                        {page}
+                                      </PaginationLink>
+                                    </PaginationItem>
+                                  ))}
+                                  <PaginationItem>
+                                    <PaginationNext
+                                      href="#"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        if (hospitalsPage < totalPages) setHospitalsPage(hospitalsPage + 1)
+                                      }}
+                                      className={hospitalsPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                                    />
+                                  </PaginationItem>
+                                </PaginationContent>
+                              </Pagination>
+                            </div>
+                          )}
+                        </>
+                      )
+                    })()}
                   </div>
                 </CardContent>
               </Card>
@@ -816,30 +1067,128 @@ export default function AddDoctorPage() {
               <Card className="shadow-xl">
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold">등록된 진료과</CardTitle>
-                  <CardDescription>총 {departmentsList.length}개</CardDescription>
+                  <CardDescription>
+                    {departmentsSearch
+                      ? `검색 결과: ${departmentsList.filter((d) =>
+                          d.name.toLowerCase().includes(departmentsSearch.toLowerCase())
+                        ).length}개 (전체 ${departmentsList.length}개)`
+                      : `총 ${departmentsList.length}개`}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                    {departmentsList.map((dept) => (
-                      <div key={dept.id} className="p-4 border rounded-lg bg-white hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-center">
-                          <h3 className="font-semibold text-lg">{dept.name}</h3>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteDepartment(dept.id)}
-                            disabled={isDeletingDepartment === dept.id}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            {isDeletingDepartment === dept.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                  {/* Search Input */}
+                  <div className="mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="진료과명으로 검색..."
+                        value={departmentsSearch}
+                        onChange={(e) => {
+                          setDepartmentsSearch(e.target.value)
+                          setDepartmentsPage(1)
+                        }}
+                        className="pl-10 pr-10"
+                      />
+                      {departmentsSearch && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                          onClick={() => {
+                            setDepartmentsSearch("")
+                            setDepartmentsPage(1)
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {(() => {
+                      // Filter departments based on search
+                      const filteredDepartments = departmentsList.filter((dept) => {
+                        if (!departmentsSearch.trim()) return true
+                        return dept.name.toLowerCase().includes(departmentsSearch.toLowerCase())
+                      })
+
+                      const startIndex = (departmentsPage - 1) * itemsPerPage
+                      const endIndex = startIndex + itemsPerPage
+                      const paginatedDepartments = filteredDepartments.slice(startIndex, endIndex)
+                      const totalPages = Math.ceil(filteredDepartments.length / itemsPerPage)
+
+                      return (
+                        <>
+                          {paginatedDepartments.map((dept) => (
+                            <div key={dept.id} className="p-4 border rounded-lg bg-white hover:shadow-md transition-shadow">
+                              <div className="flex justify-between items-center">
+                                <h3 className="font-semibold text-lg">{dept.name}</h3>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDeleteDepartment(dept.id)}
+                                  disabled={isDeletingDepartment === dept.id}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  {isDeletingDepartment === dept.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-4 h-4" />
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                          {filteredDepartments.length === 0 && (
+                            <p className="text-center text-muted-foreground py-8">
+                              {departmentsSearch ? "검색 결과가 없습니다." : "등록된 진료과가 없습니다."}
+                            </p>
+                          )}
+                          {filteredDepartments.length > 0 && totalPages > 1 && (
+                            <div className="mt-6">
+                              <Pagination>
+                                <PaginationContent>
+                                  <PaginationItem>
+                                    <PaginationPrevious
+                                      href="#"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        if (departmentsPage > 1) setDepartmentsPage(departmentsPage - 1)
+                                      }}
+                                      className={departmentsPage === 1 ? "pointer-events-none opacity-50" : ""}
+                                    />
+                                  </PaginationItem>
+                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                    <PaginationItem key={page}>
+                                      <PaginationLink
+                                        href="#"
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          setDepartmentsPage(page)
+                                        }}
+                                        isActive={departmentsPage === page}
+                                      >
+                                        {page}
+                                      </PaginationLink>
+                                    </PaginationItem>
+                                  ))}
+                                  <PaginationItem>
+                                    <PaginationNext
+                                      href="#"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        if (departmentsPage < totalPages) setDepartmentsPage(departmentsPage + 1)
+                                      }}
+                                      className={departmentsPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                                    />
+                                  </PaginationItem>
+                                </PaginationContent>
+                              </Pagination>
+                            </div>
+                          )}
+                        </>
+                      )
+                    })()}
                   </div>
                 </CardContent>
               </Card>
