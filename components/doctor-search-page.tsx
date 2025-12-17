@@ -207,6 +207,7 @@ export function DoctorSearchPage() {
         {/* Header */}
         <header className="mb-8 text-center relative">
         <div className="flex justify-end">
+          
     <Link href="/admin/login">
       <Button variant="outline" size="sm" className="gap-2 bg-transparent">
         <ChevronsUpDown className="h-4 w-4" />
@@ -229,14 +230,12 @@ export function DoctorSearchPage() {
   <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold">
    {/* Search by Name */}
    <div className="md:col-span-3 w-full">
-                <Label htmlFor="search" className="mb-2 block text-sm font-semibold text-foreground">
-                  의사명 또는 전문과목
-                </Label>
+               
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <Input
                     id="search"
-                    placeholder="예: 김철수, 심장내과"
+                    placeholder="의사명 또는 전문과목"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
@@ -255,7 +254,7 @@ export function DoctorSearchPage() {
             {/* Doctor Rating Tabs */}
             <div className="mb-6">
             <div className="mb-3 flex items-center gap-2">
-                <Label className="text-base font-semibold text-foreground">의사 등급</Label>
+                <Label className="text-base font-semibold text-foreground">의사 선택</Label>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -513,7 +512,7 @@ export function DoctorSearchPage() {
                 </div>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                의사 검색 시스템에 오신 것을 환영합니다
+                의사 검색 시스템입니다.
               </h3>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 검색 조건을 선택하고 <span className="font-semibold text-blue-600 dark:text-blue-400">검색 버튼</span>을
@@ -556,17 +555,44 @@ export function DoctorSearchPage() {
                   className="transition-all hover:shadow-xl hover:-translate-y-1 cursor-pointer"
                   onClick={() => handleDoctorClick(doctor)}
                 >
-                  <div className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                      <Stethoscope className="h-4 w-4" />
-                        <div className="text-xl font-bold">{doctor.name}</div>
-                        <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                         
-                        </p>
-                      </div>
+               <div className="p-4">
+  <div className="flex items-start justify-between">
+    <div>
+      {/* 아이콘 + 이름 한 줄 */}
+      <div className="flex items-center gap-2">
+        <Stethoscope className="h-6 w-6" />
+        <div className="text-xl font-bold">{doctor.name}</div>
+      </div>
+
+      {/* 부가 정보 */}
+      <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+        {/* 여기에 과목, 병원명 등 */}
+      </p>
+    </div>
                       <Badge className={ratingColors[doctor.rating]}>{doctor.rating}급</Badge>
                     </div>
+
+                    <div className="flex items-start gap-3 mt-2">
+  <Building2 className="mt-1 h-5 w-5 text-muted-foreground" />
+  <div>
+  <div className="flex items-center gap-3">
+  {/* 병원명 */}
+  <div className="text-base font-medium">
+    {doctor.hospital.name}
+  </div>
+
+  {/* 주소 */}
+  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+    <MapPin className="h-4 w-4" />
+    <span>{doctor.hospital.address}</span>
+  </div>
+</div>
+    <div className="text-base font-medium text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-md inline-block">
+  {doctor.department.name}
+</div>
+  </div>
+</div>
+
                     <div className="space-y-3 mt-4">
                       <div className="flex items-center gap-2 text-sm">
                         <Award className="h-4 w-4 text-muted-foreground" />
@@ -578,18 +604,8 @@ export function DoctorSearchPage() {
                         </span>
                       </div>
 
-                      <div className="flex items-start gap-2 text-sm">
-                        <Building2 className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="font-medium">{doctor.hospital.name}</div>
-                          <div className="text-xs text-muted-foreground">{doctor.department.name}</div>
-                        </div>
-                      </div>
 
-                      <div className="flex items-start gap-2 text-sm">
-                        <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                        <div className="text-muted-foreground">{doctor.hospital.address}</div>
-                      </div>
+                     
 
                       <div className="flex items-center gap-3 text-sm">
                         <Phone className="h-4 w-4 text-muted-foreground" />
@@ -655,7 +671,7 @@ export function DoctorSearchPage() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-xl">
                 <Award className="h-6 w-6 text-blue-600" />
-                의사 등급 안내
+                등급별 의사 안내
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -666,13 +682,12 @@ export function DoctorSearchPage() {
               <div className="space-y-3">
                 <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                    A
+                    A급
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">최우수 등급</h4>
+                    <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">협조의사</h4>
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      15년 이상의 풍부한 임상 경험과 탁월한 전문성을 보유한 의료진입니다. 복잡한 증례에 대한 높은 치료
-                      성공률과 환자 만족도를 자랑합니다.
+                      언제든지 협조 가능한 의사입니다.
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <CheckCircle2 className="h-4 w-4 text-blue-600" />
@@ -685,13 +700,12 @@ export function DoctorSearchPage() {
 
                 <div className="flex items-start gap-3 p-4 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                    B
+                    B급
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-green-900 dark:text-green-100 mb-1">우수 등급</h4>
+                    <h4 className="font-semibold text-green-900 dark:text-green-100 mb-1">협조의사</h4>
                     <p className="text-sm text-green-700 dark:text-green-300">
-                      10년 이상의 임상 경험을 갖춘 숙련된 의료진입니다. 안정적인 치료 결과와 높은 환자 신뢰도를 유지하고
-                      있습니다.
+                      협조의사지만 자문만을 구할 수 있습니다 
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -707,10 +721,9 @@ export function DoctorSearchPage() {
                     C
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-1">양호 등급</h4>
+                    <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-1">일반의사</h4>
                     <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                      5년 이상의 임상 경험을 보유한 의료진입니다. 일반적인 질환에 대한 진료와 치료를 안정적으로
-                      제공합니다.
+                      포섭대상 의사입니다 
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <CheckCircle2 className="h-4 w-4 text-yellow-600" />
@@ -726,10 +739,9 @@ export function DoctorSearchPage() {
                     D
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-red-900 dark:text-red-100 mb-1">보통 등급</h4>
+                    <h4 className="font-semibold text-red-900 dark:text-red-100 mb-1">비의료인</h4>
                     <p className="text-sm text-red-700 dark:text-red-300">
-                      전문의 자격을 갖춘 의료진으로, 기본적인 진료와 치료를 제공합니다. 경력을 쌓아가는 단계의 의료진이
-                      포함됩니다.
+                      비의료인에는 병원 인포, 과장 등이 포함됩니다 
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <CheckCircle2 className="h-4 w-4 text-red-600" />
@@ -741,8 +753,7 @@ export function DoctorSearchPage() {
 
               <div className="mt-4 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
                 <p className="text-xs text-muted-foreground">
-                  <span className="font-semibold">※ 참고:</span> 등급은 참고 자료이며, 실제 진료 선택 시에는 의사의 전문
-                  분야와 환자의 증상을 종합적으로 고려하시기 바랍니다.
+                  <span className="font-semibold">※ 참고 : </span> 
                   올리톡 협조의사 명단 탭을 사용하시기 바랍니다.
                 </p>
               </div>

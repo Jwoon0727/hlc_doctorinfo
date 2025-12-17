@@ -1,5 +1,5 @@
 // Simple authentication for admin access
-const ADMIN_PASSWORD = "admin1234" // In production, this should be environment variable
+const ADMIN_PASSWORD = "hlc19141914" // In production, this should be environment variable
 
 export function validateAdminPassword(password: string): boolean {
   return password === ADMIN_PASSWORD

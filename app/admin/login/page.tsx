@@ -88,7 +88,7 @@ export default function AdminLoginPage() {
 
             <div className="pt-4 border-t">
               <p className="text-xs text-center text-muted-foreground">
-                테스트 비밀번호: <code className="px-2 py-1 bg-gray-100 rounded">admin1234</code>
+                테스트 비밀번호: <code className="px-2 py-1 bg-gray-100 rounded">hlc19141914</code>
               </p>
             </div>
           </form>

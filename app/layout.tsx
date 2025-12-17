@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description: "협조의사/일반의사 의료진 찾기",
   generator: "v0.app",
   manifest: "/manifest.json", 
-  themeColor: "#ffffff",
+  themeColor: "#f8fafc",
   icons: {
     icon: [
       {
