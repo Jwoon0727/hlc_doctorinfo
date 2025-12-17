@@ -547,6 +547,9 @@ export function DoctorSearchPage() {
               </div>
             </div>
 
+{/* ----------------------------------------------------------------------------------------------------------------------------------- */}
+
+
             {/* Results Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredDoctors.map((doctor) => (
@@ -596,7 +599,7 @@ export function DoctorSearchPage() {
                     <div className="space-y-3 mt-4">
                       <div className="flex items-center gap-2 text-sm">
                         <Award className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">전문과목:</span>
+                        <span className="text-muted-foreground whitespace-nowrap">전문과목:</span>
                         <span className="font-medium">
                           {typeof doctor.experience_years === "string" 
                             ? doctor.experience_years 
@@ -761,6 +764,10 @@ export function DoctorSearchPage() {
           </DialogContent>
         </Dialog>
 
+{/* ----------------------------------------------------------------------------------------------------------------------------------- */}
+
+
+
 
         {/* Doctor Detail Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -770,19 +777,41 @@ export function DoctorSearchPage() {
                 <DialogHeader>
                   <div className="flex items-start justify-between">
                     <div>
-                      <DialogTitle className="text-2xl">{selectedDoctor.name}</DialogTitle>
-                      <DialogDescription className="mt-2 flex items-center gap-2 text-base">
-                        <Stethoscope className="h-4 w-4" />
-                        
-                      </DialogDescription>
+                    <DialogTitle>
+      <div className="flex items-center gap-2 text-2xl font-bold">
+        <Stethoscope className="h-6 w-6 text-muted-foreground" />
+        <span>{selectedDoctor.name}</span>
+      </div>
+    </DialogTitle>
                     </div>
                     <Badge className={`${ratingColors[selectedDoctor.rating]} text-lg px-3 py-1`}>
-                      {selectedDoctor.rating}등급
+                      {selectedDoctor.rating}급
                     </Badge>
                   </div>
                 </DialogHeader>
 
-                <div className="space-y-6 pt-4">
+                <div className="flex items-start gap-3 mt-2">
+  <Building2 className="mt-1 h-5 w-5 text-muted-foreground" />
+  <div>
+  <div className="flex items-center gap-3">
+  {/* 병원명 */}
+  <div className="text-base font-medium">
+    {selectedDoctor.hospital.name}
+  </div>
+
+  {/* 주소 */}
+  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+    <MapPin className="h-4 w-4" />
+    <span>{selectedDoctor.hospital.address}</span>
+  </div>
+</div>
+    <div className="text-base font-medium text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-md inline-block">
+  {selectedDoctor.department.name}
+</div>
+  </div>
+</div>
+
+                <div className="space-y-6 pt-2">
                   {/* Basic Info */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 text-base">
@@ -795,13 +824,7 @@ export function DoctorSearchPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-start gap-3 text-base">
-                      <Building2 className="mt-1 h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <div className="font-semibold text-lg">{selectedDoctor.hospital.name}</div>
-                        <div className="text-sm text-muted-foreground mt-1">{selectedDoctor.department.name}</div>
-                      </div>
-                    </div>
+                 
 
                     <div className="flex items-start gap-3 text-base">
                       <MapPin className="mt-1 h-5 w-5 text-muted-foreground" />
