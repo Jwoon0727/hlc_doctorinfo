@@ -217,10 +217,10 @@ export function DoctorSearchPage() {
   </div>
   <div className="mt-8 text-center">
     <h1 className="mb-2 text-4xl font-bold text-blue-600 dark:text-blue-400">
-      HLC천안 협조의사명단
+      천안HLC 협조의사명단
     </h1>
     <p className="text-muted-foreground">
-      전문의 등급과 진료과목으로 최적의 의료진을 찾아보세요
+      협조의사/일반의사 등급별 검색 
     </p>
   </div>
         </header>
@@ -512,11 +512,11 @@ export function DoctorSearchPage() {
                 </div>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                의사 검색 시스템입니다.
+                의사 검색
               </h3>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 검색 조건을 선택하고 <span className="font-semibold text-blue-600 dark:text-blue-400">검색 버튼</span>을
-                눌러 원하시는 의사를 찾아보세요
+                눌러 원하시는 의사를 찾아보세요.
               </p>
               <div className="flex flex-wrap justify-center gap-4 mt-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
@@ -679,7 +679,7 @@ export function DoctorSearchPage() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <p className="text-sm text-muted-foreground mb-4">
-                의사 등급은 전문성, 경력, 환자 만족도 등을 종합적으로 평가한 지표입니다.
+                의사 등급은 종합적으로 평가한 지표입니다.
               </p>
 
               <div className="space-y-3">
@@ -695,7 +695,7 @@ export function DoctorSearchPage() {
                     <div className="flex items-center gap-2 mt-2">
                       <CheckCircle2 className="h-4 w-4 text-blue-600" />
                       <span className="text-xs font-medium text-blue-600">
-                        경력 15년 이상, 전문의 자격증, 우수 논문 실적
+                        파란색으로 표시됩니다.
                       </span>
                     </div>
                   </div>
@@ -713,7 +713,7 @@ export function DoctorSearchPage() {
                     <div className="flex items-center gap-2 mt-2">
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
                       <span className="text-xs font-medium text-green-600">
-                        경력 10년 이상, 전문의 자격증, 지속적인 연구 활동
+                        초록색으로 표시됩니다.
                       </span>
                     </div>
                   </div>
@@ -731,7 +731,7 @@ export function DoctorSearchPage() {
                     <div className="flex items-center gap-2 mt-2">
                       <CheckCircle2 className="h-4 w-4 text-yellow-600" />
                       <span className="text-xs font-medium text-yellow-600">
-                        경력 5년 이상, 전문의 자격증, 정기적인 보수 교육
+                        노란색으로 표시됩니다.
                       </span>
                     </div>
                   </div>
@@ -748,7 +748,7 @@ export function DoctorSearchPage() {
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <CheckCircle2 className="h-4 w-4 text-red-600" />
-                      <span className="text-xs font-medium text-red-600">전문의 자격증, 기본 임상 경험</span>
+                      <span className="text-xs font-medium text-red-600">빨간색으로 표시됩니다.</span>
                     </div>
                   </div>
                 </div>
