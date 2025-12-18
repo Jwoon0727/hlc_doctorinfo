@@ -8,7 +8,7 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "협조의사/일반의사 의료진 빠른 검색 - 바로 홈화면에 추가해 이용하세요.",
+  title: "협조의사명단",
   description: "천안 hlc&pvg 외에 다른 유저의 접근을 제한합니다.",
   generator: "v0.app",
   manifest: "/manifest.json", 
