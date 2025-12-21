@@ -216,7 +216,7 @@ export function DoctorSearchPage() {
     </Link>
   </div>
   <div className="mt-8 text-center">
-    <h1 className="mb-2 text-4xl font-bold text-blue-600 dark:text-blue-400">
+    <h1 className="mb-2 text-3xl font-bold text-blue-600 dark:text-blue-400">
       천안HLC 협조의사명단
     </h1>
     <p className="text-muted-foreground">
