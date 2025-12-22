@@ -47,6 +47,8 @@ import {
 export default function AddDoctorPage() {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [isMounted, setIsMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -54,6 +56,7 @@ export default function AddDoctorPage() {
   const [isDeletingHospital, setIsDeletingHospital] = useState<string | null>(null)
   const [isAddingDepartment, setIsAddingDepartment] = useState(false)
   const [isDeletingDepartment, setIsDeletingDepartment] = useState<string | null>(null)
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null)
 
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -81,7 +84,6 @@ export default function AddDoctorPage() {
   const [formData, setFormData] = useState({
     name: "",
     rating: "B" as "A" | "B" | "C" | "D",
-    specialization: "",
     experience_years: "",
     hospital_id: "",
     department_id: "",
@@ -93,7 +95,6 @@ export default function AddDoctorPage() {
   const [editFormData, setEditFormData] = useState({
     name: "",
     rating: "B" as "A" | "B" | "C" | "D",
-    specialization: "",
     experience_years: "",
     hospital_id: "",
     department_id: "",
@@ -103,15 +104,27 @@ export default function AddDoctorPage() {
   })
 
   useEffect(() => {
-    const authenticated = isAdminAuthenticated()
-    setIsAuthenticated(authenticated)
-    if (!authenticated) {
-      router.push("/admin/login")
-    } else {
-      loadDoctors()
-      loadHospitalsAndDepartments()
+    setIsMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isMounted) return
+    
+    const checkAuth = () => {
+      const authenticated = isAdminAuthenticated()
+      setIsAuthenticated(authenticated)
+      setIsCheckingAuth(false)
+      
+      if (!authenticated) {
+        router.replace("/admin/login")
+      } else {
+        loadDoctors()
+        loadHospitalsAndDepartments()
+      }
     }
-  }, [router])
+    
+    checkAuth()
+  }, [router, isMounted])
 
   const loadDoctors = async () => {
     try {
@@ -159,23 +172,25 @@ export default function AddDoctorPage() {
       const newDoctor = {
         name: formData.name,
         rating: formData.rating,
-        specialization: formData.specialization,
         experience_years: formData.experience_years, // 전문과목 (텍스트)
         hospital_id: formData.hospital_id,
-        department_id: formData.department_id,
+        department_id: formData.department_id && formData.department_id !== "none" ? formData.department_id : null,
         email: formData.email,
         phone: formData.phone,
         notes: formData.notes,
       }
 
       await addDoctorToSupabase(newDoctor)
+      
+      // Refresh cache to reflect changes on main page
+      await fetch('/api/doctors', { method: 'POST' })
+      
       setSuccess(true)
       await loadDoctors()
 
       setFormData({
         name: "",
         rating: "B",
-        specialization: "",
         experience_years: "",
         hospital_id: "",
         department_id: "",
@@ -216,7 +231,8 @@ export default function AddDoctorPage() {
   }
 
   // Helper to get full department object by ID
-  const getDepartmentById = (departmentId: string) => {
+  const getDepartmentById = (departmentId?: string | null) => {
+    if (!departmentId) return undefined
     return departmentsList.find((d) => d.id === departmentId)
   }
 
@@ -225,10 +241,9 @@ export default function AddDoctorPage() {
     setEditFormData({
       name: doctor.name,
       rating: doctor.rating,
-      specialization: doctor.specialization,
       experience_years: typeof doctor.experience_years === "number" ? doctor.experience_years.toString() : doctor.experience_years,
       hospital_id: doctor.hospital_id,
-      department_id: doctor.department_id,
+      department_id: doctor.department_id || "none",
       email: doctor.email,
       phone: doctor.phone || "", // Include phone in edit form
       notes: doctor.notes || "",
@@ -247,16 +262,19 @@ export default function AddDoctorPage() {
         ...editingDoctor,
         name: editFormData.name,
         rating: editFormData.rating,
-        specialization: editFormData.specialization,
         experience_years: editFormData.experience_years, // 전문과목 (텍스트)
         hospital_id: editFormData.hospital_id,
-        department_id: editFormData.department_id,
+        department_id: editFormData.department_id && editFormData.department_id !== "none" ? editFormData.department_id : null,
         email: editFormData.email,
         phone: editFormData.phone,
         notes: editFormData.notes,
       }
 
       await updateDoctorInSupabase(editingDoctor.id, updatedDoctor)
+      
+      // Refresh cache to reflect changes on main page
+      await fetch('/api/doctors', { method: 'POST' })
+      
       await loadDoctors()
       setEditingDoctor(null)
       setIsEditModalOpen(false)
@@ -274,6 +292,10 @@ export default function AddDoctorPage() {
 
     try {
       await deleteDoctorFromSupabase(doctorId)
+      
+      // Refresh cache to reflect changes on main page
+      await fetch('/api/doctors', { method: 'POST' })
+      
       await loadDoctors()
       setDeleteConfirmId(null)
     } catch (err) {
@@ -299,6 +321,10 @@ export default function AddDoctorPage() {
       }
 
       await addHospitalToSupabase(hospital)
+      
+      // Refresh cache to reflect changes on main page
+      await fetch('/api/hospitals', { method: 'POST' })
+      
       setNewHospital({ name: "", address: "", phone: "" })
       await loadHospitalsAndDepartments()
     } catch (err) {
@@ -322,6 +348,10 @@ export default function AddDoctorPage() {
       }
 
       await addDepartmentToSupabase(department)
+      
+      // Refresh cache to reflect changes on main page
+      await fetch('/api/departments', { method: 'POST' })
+      
       setNewDepartment({ name: "" })
       await loadHospitalsAndDepartments()
     } catch (err) {
@@ -333,12 +363,26 @@ export default function AddDoctorPage() {
   }
 
   const handleDeleteHospital = async (hospitalId: string) => {
+    // Check if any doctors are using this hospital
+    const doctorsUsingHospital = existingDoctors.filter((doctor) => doctor.hospital_id === hospitalId)
+    
+    if (doctorsUsingHospital.length > 0) {
+      setDeleteErrorMessage(
+        `이 병원을 사용하는 의사가 ${doctorsUsingHospital.length}명 있어 삭제할 수 없습니다.\n먼저 해당 의사들의 병원을 변경해주세요.`
+      )
+      return
+    }
+
     if (confirm("이 병원을 삭제하시겠습니까?")) {
       setIsDeletingHospital(hospitalId)
       setError(null)
 
       try {
         await deleteHospitalFromSupabase(hospitalId)
+        
+        // Refresh cache to reflect changes on main page
+        await fetch('/api/hospitals', { method: 'POST' })
+        
         await loadHospitalsAndDepartments()
       } catch (err) {
         console.error("Failed to delete hospital:", err)
@@ -350,12 +394,26 @@ export default function AddDoctorPage() {
   }
 
   const handleDeleteDepartment = async (departmentId: string) => {
+    // Check if any doctors are using this department
+    const doctorsUsingDepartment = existingDoctors.filter((doctor) => doctor.department_id === departmentId)
+    
+    if (doctorsUsingDepartment.length > 0) {
+      setDeleteErrorMessage(
+        `이 진료과를 사용하는 의사가 ${doctorsUsingDepartment.length}명 있어 삭제할 수 없습니다.\n먼저 해당 의사들의 진료과를 변경해주세요.`
+      )
+      return
+    }
+
     if (confirm("이 진료과를 삭제하시겠습니까?")) {
       setIsDeletingDepartment(departmentId)
       setError(null)
 
       try {
         await deleteDepartmentFromSupabase(departmentId)
+        
+        // Refresh cache to reflect changes on main page
+        await fetch('/api/departments', { method: 'POST' })
+        
         await loadHospitalsAndDepartments()
       } catch (err) {
         console.error("Failed to delete department:", err)
@@ -377,6 +435,19 @@ export default function AddDoctorPage() {
     handleUpdateDoctor()
   }
 
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!isMounted || isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">인증 확인 중...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render anything if not authenticated (will redirect)
   if (!isAuthenticated) {
     return null
   }
@@ -470,20 +541,6 @@ export default function AddDoctorPage() {
                         </Select>
                       </div>
 
-                      {/* Specialization */}
-                      <div className="space-y-2">
-                        <Label htmlFor="specialization">
-                          전문분야 <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          id="specialization"
-                          placeholder="예: 심장내과"
-                          value={formData.specialization}
-                          onChange={(e) => handleChange("specialization", e.target.value)}
-                          required
-                        />
-                      </div>
-
                       {/* Specialty Subject */}
                       <div className="space-y-2">
                         <Label htmlFor="experience">
@@ -523,17 +580,16 @@ export default function AddDoctorPage() {
 
                       {/* Department */}
                       <div className="space-y-2">
-                        <Label htmlFor="department">
-                          진료과 <span className="text-red-500">*</span>
-                        </Label>
+                        <Label htmlFor="department">진료과</Label>
                         <Select
                           value={formData.department_id}
                           onValueChange={(value) => handleChange("department_id", value)}
                         >
                           <SelectTrigger id="department">
-                            <SelectValue placeholder="진료과 선택" />
+                            <SelectValue placeholder="진료과 선택 (선택사항)" />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="none">선택 안함</SelectItem>
                             {departmentsList.map((dept) => (
                               <SelectItem key={dept.id} value={dept.id}>
                                 {dept.name}
@@ -625,7 +681,6 @@ export default function AddDoctorPage() {
                             const department = getDepartmentById(doctor.department_id)
                             return (
                               doctor.name.toLowerCase().includes(searchLower) ||
-                              doctor.specialization.toLowerCase().includes(searchLower) ||
                               (typeof doctor.experience_years === "string"
                                 ? doctor.experience_years.toLowerCase().includes(searchLower)
                                 : doctor.experience_years.toString().toLowerCase().includes(searchLower)) ||
@@ -646,7 +701,7 @@ export default function AddDoctorPage() {
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="의사명, 전문분야, 병원명으로 검색..."
+                        placeholder="의사명, 전문과목, 병원명으로 검색..."
                         value={doctorsSearch}
                         onChange={(e) => {
                           setDoctorsSearch(e.target.value)
@@ -679,7 +734,6 @@ export default function AddDoctorPage() {
                         const department = getDepartmentById(doctor.department_id)
                         return (
                           doctor.name.toLowerCase().includes(searchLower) ||
-                          doctor.specialization.toLowerCase().includes(searchLower) ||
                           (typeof doctor.experience_years === "string"
                             ? doctor.experience_years.toLowerCase().includes(searchLower)
                             : doctor.experience_years.toString().toLowerCase().includes(searchLower)) ||
@@ -724,9 +778,8 @@ export default function AddDoctorPage() {
                                         {doctor.rating}등급
                                       </span>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">{doctor.specialization}</p>
                                     <p className="text-sm text-muted-foreground">
-                                      {hospital?.name} · {department?.name}
+                                      {hospital?.name}{department?.name ? ` · ${department.name}` : ""}
                                     </p>
                                     <p className="text-sm text-muted-foreground">전문과목: {doctor.experience_years}</p>
                                     <p className="text-sm text-muted-foreground">전화번호: {doctor.phone}</p>
@@ -1226,6 +1279,19 @@ export default function AddDoctorPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Error Dialog */}
+      <Dialog open={deleteErrorMessage !== null} onOpenChange={() => setDeleteErrorMessage(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>삭제할 수 없습니다</DialogTitle>
+            <DialogDescription className="whitespace-pre-line">{deleteErrorMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setDeleteErrorMessage(null)}>확인</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Doctor Dialog */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -1263,17 +1329,6 @@ export default function AddDoctorPage() {
                     <SelectItem value="D">D 등급</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              {/* Edit Specialization */}
-              <div className="space-y-2">
-                <Label htmlFor="edit-specialization">전문분야</Label>
-                <Input
-                  id="edit-specialization"
-                  value={editFormData.specialization}
-                  onChange={(e) => handleEditChange("specialization", e.target.value)}
-                  required
-                />
               </div>
 
               {/* Edit Specialty Subject */}
@@ -1317,9 +1372,10 @@ export default function AddDoctorPage() {
                   onValueChange={(value) => handleEditChange("department_id", value)}
                 >
                   <SelectTrigger id="edit-department">
-                    <SelectValue placeholder="진료과 선택" />
+                    <SelectValue placeholder="진료과 선택 (선택사항)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">선택 안함</SelectItem>
                     {departmentsList.map((dept) => (
                       <SelectItem key={dept.id} value={dept.id}>
                         {dept.name}

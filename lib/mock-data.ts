@@ -4,10 +4,9 @@ export type Doctor = {
   id: string
   name: string
   rating: "A" | "B" | "C" | "D"
-  specialization: string
   experience_years: string | number // 전문과목 (텍스트 또는 숫자)
   hospital_id: string
-  department_id: string
+  department_id?: string | null // Optional department
   email: string
   phone?: string // Added phone field
   notes?: string
@@ -78,7 +77,6 @@ export const doctors: Doctor[] = [
     id: "1",
     name: "김철수",
     rating: "A",
-    specialization: "심장내과",
     experience_years: 15,
     hospital_id: "1",
     department_id: "1",
@@ -90,7 +88,6 @@ export const doctors: Doctor[] = [
     id: "2",
     name: "이영희",
     rating: "A",
-    specialization: "뇌신경외과",
     experience_years: 20,
     hospital_id: "1",
     department_id: "4",
@@ -102,7 +99,6 @@ export const doctors: Doctor[] = [
     id: "3",
     name: "박민수",
     rating: "B",
-    specialization: "척추외과",
     experience_years: 12,
     hospital_id: "2",
     department_id: "3",
@@ -114,7 +110,6 @@ export const doctors: Doctor[] = [
     id: "4",
     name: "최지원",
     rating: "A",
-    specialization: "소아심장내과",
     experience_years: 18,
     hospital_id: "3",
     department_id: "5",
@@ -126,7 +121,6 @@ export const doctors: Doctor[] = [
     id: "5",
     name: "정수민",
     rating: "B",
-    specialization: "산전진단",
     experience_years: 10,
     hospital_id: "2",
     department_id: "6",
@@ -138,7 +132,6 @@ export const doctors: Doctor[] = [
     id: "6",
     name: "강동훈",
     rating: "C",
-    specialization: "망막전문",
     experience_years: 8,
     hospital_id: "4",
     department_id: "7",
@@ -150,7 +143,6 @@ export const doctors: Doctor[] = [
     id: "7",
     name: "윤서연",
     rating: "A",
-    specialization: "두경부외과",
     experience_years: 16,
     hospital_id: "3",
     department_id: "8",
@@ -162,7 +154,6 @@ export const doctors: Doctor[] = [
     id: "8",
     name: "임재현",
     rating: "B",
-    specialization: "레이저치료",
     experience_years: 9,
     hospital_id: "5",
     department_id: "9",
@@ -174,7 +165,6 @@ export const doctors: Doctor[] = [
     id: "9",
     name: "송유진",
     rating: "A",
-    specialization: "우울증·불안장애",
     experience_years: 14,
     hospital_id: "4",
     department_id: "10",
@@ -186,7 +176,6 @@ export const doctors: Doctor[] = [
     id: "10",
     name: "한지훈",
     rating: "C",
-    specialization: "스포츠재활",
     experience_years: 7,
     hospital_id: "5",
     department_id: "11",
@@ -198,7 +187,6 @@ export const doctors: Doctor[] = [
     id: "11",
     name: "오세영",
     rating: "B",
-    specialization: "외상외과",
     experience_years: 11,
     hospital_id: "1",
     department_id: "2",
@@ -210,7 +198,6 @@ export const doctors: Doctor[] = [
     id: "12",
     name: "안민지",
     rating: "D",
-    specialization: "응급처치",
     experience_years: 5,
     hospital_id: "2",
     department_id: "12",
@@ -222,7 +209,6 @@ export const doctors: Doctor[] = [
     id: "13",
     name: "배준호",
     rating: "A",
-    specialization: "관절내시경",
     experience_years: 19,
     hospital_id: "3",
     department_id: "3",
@@ -234,7 +220,6 @@ export const doctors: Doctor[] = [
     id: "14",
     name: "서하늘",
     rating: "B",
-    specialization: "소화기내과",
     experience_years: 13,
     hospital_id: "4",
     department_id: "1",
@@ -246,7 +231,6 @@ export const doctors: Doctor[] = [
     id: "15",
     name: "남궁민",
     rating: "C",
-    specialization: "알레르기",
     experience_years: 6,
     hospital_id: "5",
     department_id: "5",

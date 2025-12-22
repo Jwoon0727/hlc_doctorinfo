@@ -9,7 +9,6 @@ function supabaseDoctorToDoctor(supabaseDoctor: any, hospital?: Hospital, depart
     id: supabaseDoctor.id,
     name: supabaseDoctor.name,
     rating: supabaseDoctor.rating as "A" | "B" | "C" | "D",
-    specialization: supabaseDoctor.specialization || "",
     experience_years: supabaseDoctor.experience_years || "",
     hospital_id: supabaseDoctor.hospital_id,
     department_id: supabaseDoctor.department_id,
@@ -25,8 +24,7 @@ function doctorToSupabase(doctor: Doctor) {
     name: doctor.name,
     rating: doctor.rating,
     hospital_id: doctor.hospital_id,
-    department_id: doctor.department_id,
-    specialization: doctor.specialization,
+    department_id: doctor.department_id || null,
     experience_years: doctor.experience_years,
     email: doctor.email,
     phone: doctor.phone || null,
@@ -60,7 +58,7 @@ export async function getDoctorsFromSupabase(): Promise<Doctor[]> {
 
   // 병원 및 진료과 ID 수집
   const hospitalIds = [...new Set(doctorsData.map((d: any) => d.hospital_id))]
-  const departmentIds = [...new Set(doctorsData.map((d: any) => d.department_id))]
+  const departmentIds = [...new Set(doctorsData.map((d: any) => d.department_id).filter(Boolean))]
 
   // 병원 정보 일괄 조회
   const { data: hospitalsData } = await supabase
@@ -68,11 +66,13 @@ export async function getDoctorsFromSupabase(): Promise<Doctor[]> {
     .select("*")
     .in("id", hospitalIds)
 
-  // 진료과 정보 일괄 조회
-  const { data: departmentsData } = await supabase
-    .from("departments")
-    .select("*")
-    .in("id", departmentIds)
+  // 진료과 정보 일괄 조회 (department_id가 있는 경우만)
+  const { data: departmentsData } = departmentIds.length > 0 
+    ? await supabase
+        .from("departments")
+        .select("*")
+        .in("id", departmentIds)
+    : { data: [] }
 
   // 병원 및 진료과를 Map으로 변환하여 빠른 조회
   const hospitalsMap = new Map(
@@ -122,11 +122,13 @@ export async function addDoctorToSupabase(doctor: Omit<Doctor, "id">): Promise<D
     .eq("id", data.hospital_id)
     .single()
 
-  const { data: department } = await supabase
-    .from("departments")
-    .select("*")
-    .eq("id", data.department_id)
-    .single()
+  const { data: department } = data.department_id
+    ? await supabase
+        .from("departments")
+        .select("*")
+        .eq("id", data.department_id)
+        .single()
+    : { data: null }
 
   return supabaseDoctorToDoctor(data, hospital, department)
 }
@@ -155,11 +157,13 @@ export async function updateDoctorInSupabase(doctorId: string, updatedDoctor: Do
     .eq("id", data.hospital_id)
     .single()
 
-  const { data: department } = await supabase
-    .from("departments")
-    .select("*")
-    .eq("id", data.department_id)
-    .single()
+  const { data: department } = data.department_id
+    ? await supabase
+        .from("departments")
+        .select("*")
+        .eq("id", data.department_id)
+        .single()
+    : { data: null }
 
   return supabaseDoctorToDoctor(data, hospital, department)
 }
