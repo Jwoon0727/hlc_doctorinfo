@@ -1,9 +1,11 @@
-// Simple authentication for admin access
-const ADMIN_PASSWORD = "jw19141935" // In production, this should be environment variable
+// Authentication for admin access
 const AUTH_EXPIRY_HOURS = 24 // Authentication expires after 24 hours
 
-export function validateAdminPassword(password: string): boolean {
-  return password === ADMIN_PASSWORD
+// This function is now async as it checks the database
+export async function validateAdminCredentials(name: string, password: string): Promise<boolean> {
+  // Dynamic import to avoid circular dependencies
+  const { verifyAdmin } = await import("@/lib/supabase/admins")
+  return await verifyAdmin(name, password)
 }
 
 export function isAdminAuthenticated(): boolean {

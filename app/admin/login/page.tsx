@@ -9,30 +9,35 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Lock, Home, AlertTriangle } from "lucide-react"
-import { validateAdminPassword, setAdminAuthentication } from "@/lib/auth"
+import { Lock, Home, AlertTriangle, User } from "lucide-react"
+import { validateAdminCredentials, setAdminAuthentication } from "@/lib/auth"
 
 export default function AdminLoginPage() {
   const router = useRouter()
+  const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
 
-    // Simulate loading for better UX
-    setTimeout(() => {
-      if (validateAdminPassword(password)) {
+    try {
+      const isValid = await validateAdminCredentials(name, password)
+      if (isValid) {
         setAdminAuthentication(true)
         router.push("/admin/add-doctor")
       } else {
-        setError("비밀번호가 올바르지 않습니다.")
+        setError("이름 또는 비밀번호가 올바르지 않습니다.")
         setIsLoading(false)
       }
-    }, 500)
+    } catch (err) {
+      console.error("Login error:", err)
+      setError("로그인 중 오류가 발생했습니다. 다시 시도해주세요.")
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -53,18 +58,41 @@ export default function AdminLoginPage() {
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             관리자 로그인
           </CardTitle>
-          <CardDescription className="text-base">의사 명단 관리를 위해 비밀번호를 입력하세요</CardDescription>
+          <CardDescription className="text-base">의사 명단 관리를 위한 비밀번호를 입력하세요</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-amber-800 font-medium">
-                 보안 경고: 암호를 타인에게 절대 알려주지 마세요.
+              <p className="text-xs text-amber-800 font-medium">
+                 보안 경고: 인증 정보를 타인에게 절대 알려주지 마세요.
               </p>
             </div>
+            
+            {/* Name Input */}
             <div className="space-y-2">
-              <Label htmlFor="password">비밀번호</Label>
+              <Label htmlFor="name" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                관리자 이름
+              </Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="이름을 입력하세요"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="h-12"
+                autoComplete="username"
+              />
+            </div>
+
+            {/* Password Input */}
+            <div className="space-y-2">
+              <Label htmlFor="password" className="flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                비밀번호
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -73,12 +101,13 @@ export default function AdminLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="h-12"
+                autoComplete="current-password"
               />
             </div>
 
             {error && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+                <p className="text-sm text-red-600 font-medium">{error}</p>
               </div>
             )}
 
@@ -88,7 +117,8 @@ export default function AdminLoginPage() {
 
             <div className="pt-4 border-t">
               <p className="text-xs text-center text-muted-foreground">
-              
+                관리자 권한이 필요합니다.
+             
               </p>
             </div>
           </form>

@@ -167,7 +167,7 @@ export default function AddDoctorPage() {
     setIsLoading(true)
     setSuccess(false)
     setError(null)
-
+   
     try {
       const newDoctor = {
         name: formData.name,
