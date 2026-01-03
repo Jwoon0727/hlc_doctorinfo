@@ -1,7 +1,7 @@
 "use client"
 
 import { CardHeader } from "@/components/ui/card"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -26,6 +26,8 @@ import {
   HelpCircle,
   CheckCircle2,
   RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import {
   type Department,
@@ -92,6 +94,13 @@ export function DoctorSearchPage() {
     loadTime: number
   } | null>(null)
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+
+  // Ref for scrolling to results
+  const resultsRef = useRef<HTMLDivElement>(null)
+
   // Helper functions to get hospital/department by ID
   const getHospitalById = (hospitalId: string): Hospital | undefined => {
     return hospitals.find((h) => h.id === hospitalId)
@@ -155,6 +164,13 @@ export function DoctorSearchPage() {
     loadData()
   }, [])
 
+  // Scroll to results when page changes
+  useEffect(() => {
+    if (hasSearched && currentPage > 1 && resultsRef.current) {
+      resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [currentPage, hasSearched])
+
   const filteredDoctors: DoctorWithDetails[] = doctors
     .map((doctor) => {
       const hospital = getHospitalById(doctor.hospital_id)
@@ -197,6 +213,13 @@ export function DoctorSearchPage() {
     .sort((a, b) => a.rating.localeCompare(b.rating))
 
   const totalCount = filteredDoctors.length
+  const totalPages = Math.ceil(totalCount / itemsPerPage)
+  
+  // Get current page doctors
+  const paginatedDoctors = filteredDoctors.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
 
   const handleSearch = async () => {
     setIsLoading(true)
@@ -208,6 +231,7 @@ export function DoctorSearchPage() {
     setAppliedHospital(selectedHospital)
     setAppliedDepartment(selectedDepartment)
     setHasSearched(true)
+    setCurrentPage(1) // Reset to first page on new search
 
     setIsLoading(false)
   }
@@ -222,6 +246,7 @@ export function DoctorSearchPage() {
     setAppliedHospital("all")
     setAppliedDepartment("all")
     setHasSearched(false)
+    setCurrentPage(1) // Reset to first page
   }
 
   const handleRefresh = async () => {
@@ -656,8 +681,8 @@ export function DoctorSearchPage() {
 
 
             {/* Results Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredDoctors.map((doctor) => (
+            <div ref={resultsRef} className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {paginatedDoctors.map((doctor) => (
                 <Card
                   key={doctor.id}
                   className="transition-all hover:shadow-xl hover:-translate-y-1 cursor-pointer"
@@ -758,6 +783,78 @@ export function DoctorSearchPage() {
                 </Card>
               ))}
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="gap-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  이전
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    // Show first page, last page, current page, and pages around current
+                    const showPage = 
+                      page === 1 || 
+                      page === totalPages || 
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    
+                    const showEllipsisBefore = page === currentPage - 2 && currentPage > 3
+                    const showEllipsisAfter = page === currentPage + 2 && currentPage < totalPages - 2
+                    
+                    if (showEllipsisBefore || showEllipsisAfter) {
+                      return (
+                        <span key={page} className="px-2 text-muted-foreground">
+                          ...
+                        </span>
+                      )
+                    }
+                    
+                    if (!showPage) return null
+                    
+                    return (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className={currentPage === page 
+                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white" 
+                          : ""
+                        }
+                      >
+                        {page}
+                      </Button>
+                    )
+                  })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="gap-1"
+                >
+                  다음
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {/* Page Info */}
+            {totalPages > 1 && (
+              <div className="mt-4 text-center text-sm text-muted-foreground">
+                {currentPage} / {totalPages} 페이지 (총 {totalCount}명)
+              </div>
+            )}
           </>
         )}
 
