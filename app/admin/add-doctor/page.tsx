@@ -832,20 +832,41 @@ export default function AddDoctorPage() {
                                       className={doctorsPage === 1 ? "pointer-events-none opacity-50" : ""}
                                     />
                                   </PaginationItem>
-                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                    <PaginationItem key={page}>
-                                      <PaginationLink
-                                        href="#"
-                                        onClick={(e) => {
-                                          e.preventDefault()
-                                          setDoctorsPage(page)
-                                        }}
-                                        isActive={doctorsPage === page}
-                                      >
-                                        {page}
-                                      </PaginationLink>
-                                    </PaginationItem>
-                                  ))}
+                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                                    // Show first page, last page, current page, and pages around current
+                                    const showPage = 
+                                      page === 1 || 
+                                      page === totalPages || 
+                                      (page >= doctorsPage - 1 && page <= doctorsPage + 1)
+                                    
+                                    const showEllipsisBefore = page === doctorsPage - 2 && doctorsPage > 3
+                                    const showEllipsisAfter = page === doctorsPage + 2 && doctorsPage < totalPages - 2
+                                    
+                                    if (showEllipsisBefore || showEllipsisAfter) {
+                                      return (
+                                        <PaginationItem key={page}>
+                                          <span className="px-4 text-muted-foreground">...</span>
+                                        </PaginationItem>
+                                      )
+                                    }
+                                    
+                                    if (!showPage) return null
+                                    
+                                    return (
+                                      <PaginationItem key={page}>
+                                        <PaginationLink
+                                          href="#"
+                                          onClick={(e) => {
+                                            e.preventDefault()
+                                            setDoctorsPage(page)
+                                          }}
+                                          isActive={doctorsPage === page}
+                                        >
+                                          {page}
+                                        </PaginationLink>
+                                      </PaginationItem>
+                                    )
+                                  })}
                                   <PaginationItem>
                                     <PaginationNext
                                       href="#"
@@ -1042,20 +1063,41 @@ export default function AddDoctorPage() {
                                       className={hospitalsPage === 1 ? "pointer-events-none opacity-50" : ""}
                                     />
                                   </PaginationItem>
-                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                    <PaginationItem key={page}>
-                                      <PaginationLink
-                                        href="#"
-                                        onClick={(e) => {
-                                          e.preventDefault()
-                                          setHospitalsPage(page)
-                                        }}
-                                        isActive={hospitalsPage === page}
-                                      >
-                                        {page}
-                                      </PaginationLink>
-                                    </PaginationItem>
-                                  ))}
+                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                                    // Show first page, last page, current page, and pages around current
+                                    const showPage = 
+                                      page === 1 || 
+                                      page === totalPages || 
+                                      (page >= hospitalsPage - 1 && page <= hospitalsPage + 1)
+                                    
+                                    const showEllipsisBefore = page === hospitalsPage - 2 && hospitalsPage > 3
+                                    const showEllipsisAfter = page === hospitalsPage + 2 && hospitalsPage < totalPages - 2
+                                    
+                                    if (showEllipsisBefore || showEllipsisAfter) {
+                                      return (
+                                        <PaginationItem key={page}>
+                                          <span className="px-4 text-muted-foreground">...</span>
+                                        </PaginationItem>
+                                      )
+                                    }
+                                    
+                                    if (!showPage) return null
+                                    
+                                    return (
+                                      <PaginationItem key={page}>
+                                        <PaginationLink
+                                          href="#"
+                                          onClick={(e) => {
+                                            e.preventDefault()
+                                            setHospitalsPage(page)
+                                          }}
+                                          isActive={hospitalsPage === page}
+                                        >
+                                          {page}
+                                        </PaginationLink>
+                                      </PaginationItem>
+                                    )
+                                  })}
                                   <PaginationItem>
                                     <PaginationNext
                                       href="#"
@@ -1211,20 +1253,41 @@ export default function AddDoctorPage() {
                                       className={departmentsPage === 1 ? "pointer-events-none opacity-50" : ""}
                                     />
                                   </PaginationItem>
-                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                    <PaginationItem key={page}>
-                                      <PaginationLink
-                                        href="#"
-                                        onClick={(e) => {
-                                          e.preventDefault()
-                                          setDepartmentsPage(page)
-                                        }}
-                                        isActive={departmentsPage === page}
-                                      >
-                                        {page}
-                                      </PaginationLink>
-                                    </PaginationItem>
-                                  ))}
+                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                                    // Show first page, last page, current page, and pages around current
+                                    const showPage = 
+                                      page === 1 || 
+                                      page === totalPages || 
+                                      (page >= departmentsPage - 1 && page <= departmentsPage + 1)
+                                    
+                                    const showEllipsisBefore = page === departmentsPage - 2 && departmentsPage > 3
+                                    const showEllipsisAfter = page === departmentsPage + 2 && departmentsPage < totalPages - 2
+                                    
+                                    if (showEllipsisBefore || showEllipsisAfter) {
+                                      return (
+                                        <PaginationItem key={page}>
+                                          <span className="px-4 text-muted-foreground">...</span>
+                                        </PaginationItem>
+                                      )
+                                    }
+                                    
+                                    if (!showPage) return null
+                                    
+                                    return (
+                                      <PaginationItem key={page}>
+                                        <PaginationLink
+                                          href="#"
+                                          onClick={(e) => {
+                                            e.preventDefault()
+                                            setDepartmentsPage(page)
+                                          }}
+                                          isActive={departmentsPage === page}
+                                        >
+                                          {page}
+                                        </PaginationLink>
+                                      </PaginationItem>
+                                    )
+                                  })}
                                   <PaginationItem>
                                     <PaginationNext
                                       href="#"
