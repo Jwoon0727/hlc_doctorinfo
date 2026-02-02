@@ -28,6 +28,8 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  History,
+  Clock,
 } from "lucide-react"
 import {
   type Department,
@@ -81,6 +83,7 @@ export function DoctorSearchPage() {
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorWithDetails | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isRatingInfoOpen, setIsRatingInfoOpen] = useState(false)
+  const [isUpdateHistoryOpen, setIsUpdateHistoryOpen] = useState(false)
 
   const [openDepartmentCombobox, setOpenDepartmentCombobox] = useState(false)
 
@@ -205,7 +208,9 @@ export function DoctorSearchPage() {
           : d.experience_years.toString()
         if (
           !d.name.toLowerCase().includes(query) && 
-          !experienceYearsStr.toLowerCase().includes(query)
+          !experienceYearsStr.toLowerCase().includes(query) &&
+          !d.department.name.toLowerCase().includes(query) &&
+          !d.hospital.name.toLowerCase().includes(query)
         ) return false
       }
       return true
@@ -338,12 +343,23 @@ export function DoctorSearchPage() {
             )}
           </div>
           
-          <Link href="/admin/login">
-            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-              <ChevronsUpDown className="h-4 w-4" />
-              관리자
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 bg-transparent hover:bg-blue-50"
+              onClick={() => setIsUpdateHistoryOpen(true)}
+            >
+              <History className="h-4 w-4" />
+              성능 업데이트
             </Button>
-          </Link>
+            <Link href="/admin/login">
+              <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                <ChevronsUpDown className="h-4 w-4" />
+                관리자
+              </Button>
+            </Link>
+          </div>
         </div>
   <div className="mt-8 text-center">
     <h1 className="mb-2 text-3xl font-bold text-blue-600 dark:text-blue-400">
@@ -365,7 +381,7 @@ export function DoctorSearchPage() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <Input
                     id="search"
-                    placeholder="의사명 또는 전문과목"
+                    placeholder="의사명, 전문과목, 진료과 또는 병원"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
@@ -961,6 +977,140 @@ export function DoctorSearchPage() {
                   <span className="font-semibold">※ 참고 : </span> 
                   올리톡 협조의사 명단 탭을 사용하시기 바랍니다.
                 </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Update History Dialog */}
+        <Dialog open={isUpdateHistoryOpen} onOpenChange={setIsUpdateHistoryOpen}>
+          <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <History className="h-6 w-6 text-blue-600" />
+                업데이트 기록
+              </DialogTitle>
+              <DialogDescription>
+                시스템 업데이트 및 개선 사항 내역입니다.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              {/* Update Entry 1 */}
+              <div className="border-l-4 border-blue-500 pl-4 py-3 bg-blue-50 dark:bg-blue-950 rounded-r-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                    2026.02.02
+                  </span>
+                  <Badge className="bg-blue-600 text-white text-xs">최신</Badge>
+                </div>
+                <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  검색 기능 개선
+                </h4>
+                <ul className="space-y-1 text-sm text-slate-700 dark:text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>진료과, 병원 검색 지원</span>
+                  </li>
+
+                </ul>
+              </div>
+
+              {/* Update Entry 2 */}
+              {/* <div className="border-l-4 border-green-500 pl-4 py-3 bg-green-50 dark:bg-green-950 rounded-r-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-semibold text-green-900 dark:text-green-100">
+                    2026.02.01
+                  </span>
+                </div>
+                <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  UI/UX 개선
+                </h4>
+                <ul className="space-y-1 text-sm text-slate-700 dark:text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>페이지네이션 기능 추가 (페이지당 10명)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>반응형 디자인 최적화</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>다크모드 지원 개선</span>
+                  </li>
+                </ul>
+              </div> */}
+
+              {/* Update Entry 3 */}
+              {/* <div className="border-l-4 border-purple-500 pl-4 py-3 bg-purple-50 dark:bg-purple-950 rounded-r-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm font-semibold text-purple-900 dark:text-purple-100">
+                    2026.01.30
+                  </span>
+                </div>
+                <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  성능 최적화
+                </h4>
+                <ul className="space-y-1 text-sm text-slate-700 dark:text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>Redis 캐싱 시스템 도입</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>데이터 로딩 속도 10배 개선</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>검색 응답 시간 단축</span>
+                  </li>
+                </ul>
+              </div> */}
+
+              {/* Update Entry 4 */}
+              {/* <div className="border-l-4 border-amber-500 pl-4 py-3 bg-amber-50 dark:bg-amber-950 rounded-r-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="h-4 w-4 text-amber-600" />
+                  <span className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                    2026.01.25
+                  </span>
+                </div>
+                <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  관리자 시스템 구축
+                </h4>
+                <ul className="space-y-1 text-sm text-slate-700 dark:text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>관리자 인증 시스템 구축</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>의사 정보 등록/수정 기능</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>데이터베이스 관리 기능</span>
+                  </li>
+                </ul>
+              </div> */}
+
+              {/* Future Plans */}
+              <div className="border-l-4 border-slate-300 pl-4 py-3 bg-slate-50 dark:bg-slate-900 rounded-r-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Award className="h-4 w-4 text-slate-600" />
+                  <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    향후 업데이트 예정
+                  </span>
+                </div>
+                <ul className="space-y-1 text-sm text-slate-600 dark:text-slate-400">
+                  <li className="flex items-start gap-2">
+                    <span className="text-slate-400">•</span>
+                    <span>미정</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </DialogContent>
