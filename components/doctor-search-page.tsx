@@ -320,7 +320,7 @@ export function DoctorSearchPage() {
             </Button> */}
             
             {/* Cache Status Indicator */}
-            {cacheStatus && !isInitialLoading && (
+            {/* {cacheStatus && !isInitialLoading && (
               <Badge 
                 variant={cacheStatus.isCached ? "default" : "secondary"}
                 className={`gap-1.5 px-3 py-1.5 ${
@@ -340,7 +340,7 @@ export function DoctorSearchPage() {
                   {cacheStatus.loadTime}ms
                 </span>
               </Badge>
-            )}
+            )} */}
           </div>
           
           <div className="flex items-center gap-2">
