@@ -86,6 +86,7 @@ const ratingLabels = {
 };
 
 export function DoctorSearchPage() {
+  const [isMounted, setIsMounted] = useState(false);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -104,6 +105,7 @@ export function DoctorSearchPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRatingInfoOpen, setIsRatingInfoOpen] = useState(false);
   const [isUpdateHistoryOpen, setIsUpdateHistoryOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
   const [openDepartmentCombobox, setOpenDepartmentCombobox] = useState(false);
 
@@ -137,6 +139,21 @@ export function DoctorSearchPage() {
   };
 
   useEffect(() => {
+    setIsMounted(true);
+    
+    // Check if notification preference has been set
+    const notificationPreference = localStorage.getItem('notification-preference');
+    if (!notificationPreference) {
+      // Show notification modal after a short delay
+      setTimeout(() => {
+        setIsNotificationModalOpen(true);
+      }, 2000);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    
     // Initial load with server-side caching via API routes
     const loadData = async () => {
       try {
@@ -187,7 +204,7 @@ export function DoctorSearchPage() {
     };
 
     loadData();
-  }, []);
+  }, [isMounted]);
 
   // Scroll to results when page changes
   useEffect(() => {
@@ -337,6 +354,47 @@ export function DoctorSearchPage() {
     setSelectedDoctor(doctor);
     setIsModalOpen(true);
   };
+
+  const handleNotificationAccept = async () => {
+    try {
+      // Request notification permission
+      const permission = await Notification.requestPermission();
+      
+      if (permission === 'granted') {
+        // Save preference to localStorage
+        localStorage.setItem('notification-preference', 'accepted');
+        
+        // Import and request FCM token
+        const { requestNotificationPermission } = await import('@/lib/firebase/client');
+        const token = await requestNotificationPermission();
+        
+        if (token) {
+          // Register token with backend
+          await fetch('/api/register-token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ token }),
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to request notification permission:', error);
+    } finally {
+      setIsNotificationModalOpen(false);
+    }
+  };
+
+  const handleNotificationDecline = () => {
+    localStorage.setItem('notification-preference', 'declined');
+    setIsNotificationModalOpen(false);
+  };
+
+  // Prevent hydration issues by not rendering until mounted
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -1338,6 +1396,61 @@ export function DoctorSearchPage() {
                 </div>
               </>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Notification Permission Modal */}
+        <Dialog open={isNotificationModalOpen} onOpenChange={setIsNotificationModalOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <Mail className="h-6 w-6 text-blue-600" />
+                알림 수신 설정
+              </DialogTitle>
+              <DialogDescription>
+                새로운 병원이 추가되거나 중요한 업데이트가 있을 때 알림을 받으시겠습니까?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+                <CheckCircle2 className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                    알림 혜택
+                  </h4>
+                  <ul className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                    <li>• 새로운 협조의사 추가 시 즉시 알림</li>
+                    <li>• 병원 정보 업데이트 소식</li>
+                    <li>• 중요한 공지사항</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-4 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                <HelpCircle className="h-5 w-5 text-slate-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    알림은 언제든지 브라우저 설정에서 끌 수 있습니다.
+                    한 번 설정하면 이 메시지는 다시 표시되지 않습니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={handleNotificationDecline}
+                className="flex-1"
+              >
+                나중에 하기
+              </Button>
+              <Button
+                onClick={handleNotificationAccept}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+              >
+                알림 받기
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
