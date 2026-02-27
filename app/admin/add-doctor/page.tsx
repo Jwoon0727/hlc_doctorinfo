@@ -1,18 +1,41 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, UserPlus, LogOut, Trash2, Building2, Stethoscope, Edit, Loader2, Search, X } from "lucide-react"
-import Link from "next/link"
-import { isAdminAuthenticated, setAdminAuthentication } from "@/lib/auth"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  ArrowLeft,
+  UserPlus,
+  LogOut,
+  Trash2,
+  Building2,
+  Stethoscope,
+  Edit,
+  Loader2,
+  Search,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { isAdminAuthenticated, setAdminAuthentication } from "@/lib/auth";
 import {
   addDoctorToSupabase,
   getDoctorsFromSupabase,
@@ -24,8 +47,8 @@ import {
   deleteHospitalFromSupabase,
   addDepartmentToSupabase,
   deleteDepartmentFromSupabase,
-} from "@/lib/supabase/doctors"
-import type { Doctor, Hospital, Department } from "@/lib/mock-data"
+} from "@/lib/supabase/doctors";
+import type { Doctor, Hospital, Department } from "@/lib/mock-data";
 import {
   Dialog,
   DialogContent,
@@ -33,8 +56,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Pagination,
   PaginationContent,
@@ -42,44 +65,54 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
+} from "@/components/ui/pagination";
 
 export default function AddDoctorPage() {
-  const router = useRouter()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  const [isMounted, setIsMounted] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isDeleting, setIsDeleting] = useState<string | null>(null)
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [isAddingHospital, setIsAddingHospital] = useState(false)
-  const [isDeletingHospital, setIsDeletingHospital] = useState<string | null>(null)
-  const [isAddingDepartment, setIsAddingDepartment] = useState(false)
-  const [isDeletingDepartment, setIsDeletingDepartment] = useState<string | null>(null)
-  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null)
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isAddingHospital, setIsAddingHospital] = useState(false);
+  const [isDeletingHospital, setIsDeletingHospital] = useState<string | null>(
+    null,
+  );
+  const [isAddingDepartment, setIsAddingDepartment] = useState(false);
+  const [isDeletingDepartment, setIsDeletingDepartment] = useState<
+    string | null
+  >(null);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(
+    null,
+  );
 
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [existingDoctors, setExistingDoctors] = useState<Doctor[]>([])
-  const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null)
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [existingDoctors, setExistingDoctors] = useState<Doctor[]>([]);
+  const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const [hospitalsList, setHospitalsList] = useState<Hospital[]>([])
-  const [departmentsList, setDepartmentsList] = useState<Department[]>([])
-  const [newHospital, setNewHospital] = useState({ name: "", address: "", phone: "" })
-  const [newDepartment, setNewDepartment] = useState({ name: "" })
+  const [hospitalsList, setHospitalsList] = useState<Hospital[]>([]);
+  const [departmentsList, setDepartmentsList] = useState<Department[]>([]);
+  const [newHospital, setNewHospital] = useState({
+    name: "",
+    address: "",
+    phone: "",
+  });
+  const [newDepartment, setNewDepartment] = useState({ name: "" });
 
   // Pagination states
-  const [doctorsPage, setDoctorsPage] = useState(1)
-  const [hospitalsPage, setHospitalsPage] = useState(1)
-  const [departmentsPage, setDepartmentsPage] = useState(1)
-  const itemsPerPage = 5
+  const [doctorsPage, setDoctorsPage] = useState(1);
+  const [hospitalsPage, setHospitalsPage] = useState(1);
+  const [departmentsPage, setDepartmentsPage] = useState(1);
+  const itemsPerPage = 5;
 
   // Search states
-  const [doctorsSearch, setDoctorsSearch] = useState("")
-  const [hospitalsSearch, setHospitalsSearch] = useState("")
-  const [departmentsSearch, setDepartmentsSearch] = useState("")
+  const [doctorsSearch, setDoctorsSearch] = useState("");
+  const [hospitalsSearch, setHospitalsSearch] = useState("");
+  const [departmentsSearch, setDepartmentsSearch] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -90,7 +123,7 @@ export default function AddDoctorPage() {
     email: "",
     phone: "", // Added phone field to form state
     notes: "",
-  })
+  });
 
   const [editFormData, setEditFormData] = useState({
     name: "",
@@ -101,92 +134,95 @@ export default function AddDoctorPage() {
     email: "",
     phone: "", // Added phone field to edit form state
     notes: "",
-  })
+  });
 
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
-    if (!isMounted) return
-    
+    if (!isMounted) return;
+
     const checkAuth = () => {
-      const authenticated = isAdminAuthenticated()
-      setIsAuthenticated(authenticated)
-      setIsCheckingAuth(false)
-      
+      const authenticated = isAdminAuthenticated();
+      setIsAuthenticated(authenticated);
+      setIsCheckingAuth(false);
+
       if (!authenticated) {
-        router.replace("/admin/login")
+        router.replace("/admin/login");
       } else {
-        loadDoctors()
-        loadHospitalsAndDepartments()
+        loadDoctors();
+        loadHospitalsAndDepartments();
       }
-    }
-    
-    checkAuth()
-  }, [router, isMounted])
+    };
+
+    checkAuth();
+  }, [router, isMounted]);
 
   const loadDoctors = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-      const doctors = await getDoctorsFromSupabase()
-      setExistingDoctors(doctors)
+      setIsLoading(true);
+      setError(null);
+      const doctors = await getDoctorsFromSupabase();
+      setExistingDoctors(doctors);
     } catch (err) {
-      console.error("Failed to load doctors:", err)
-      setError("의사 목록을 불러오는데 실패했습니다.")
+      console.error("Failed to load doctors:", err);
+      setError("의사 목록을 불러오는데 실패했습니다.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const loadHospitalsAndDepartments = async () => {
     try {
-      setError(null)
+      setError(null);
       const [hospitals, departments] = await Promise.all([
         getHospitalsFromSupabase(),
         getDepartmentsFromSupabase(),
-      ])
-      setHospitalsList(hospitals)
-      setDepartmentsList(departments)
+      ]);
+      setHospitalsList(hospitals);
+      setDepartmentsList(departments);
     } catch (err) {
-      console.error("Failed to load hospitals/departments:", err)
-      setError("병원/진료과 목록을 불러오는데 실패했습니다.")
+      console.error("Failed to load hospitals/departments:", err);
+      setError("병원/진료과 목록을 불러오는데 실패했습니다.");
     }
-  }
+  };
 
   // Removed event listeners as we're using Supabase now
 
   const handleLogout = () => {
-    setAdminAuthentication(false)
-    router.push("/admin/login")
-  }
+    setAdminAuthentication(false);
+    router.push("/admin/login");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setSuccess(false)
-    setError(null)
-   
+    e.preventDefault();
+    setIsLoading(true);
+    setSuccess(false);
+    setError(null);
+
     try {
       const newDoctor = {
         name: formData.name,
         rating: formData.rating,
         experience_years: formData.experience_years, // 전문과목 (텍스트)
         hospital_id: formData.hospital_id,
-        department_id: formData.department_id && formData.department_id !== "none" ? formData.department_id : null,
+        department_id:
+          formData.department_id && formData.department_id !== "none"
+            ? formData.department_id
+            : null,
         email: formData.email,
         phone: formData.phone,
         notes: formData.notes,
-      }
+      };
 
-      await addDoctorToSupabase(newDoctor)
-      
+      await addDoctorToSupabase(newDoctor);
+
       // Refresh cache to reflect changes on main page
-      await fetch('/api/doctors', { method: 'POST' })
-      
-      setSuccess(true)
-      await loadDoctors()
+      await fetch("/api/doctors", { method: "POST" });
+
+      setSuccess(true);
+      await loadDoctors();
 
       setFormData({
         name: "",
@@ -197,65 +233,70 @@ export default function AddDoctorPage() {
         email: "",
         phone: "",
         notes: "",
-      })
+      });
 
-      setTimeout(() => setSuccess(false), 3000)
+      setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      console.error("Failed to add doctor:", err)
-      setError("의사 추가에 실패했습니다. 다시 시도해주세요.")
+      console.error("Failed to add doctor:", err);
+      setError("의사 추가에 실패했습니다. 다시 시도해주세요.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleEditChange = (field: string, value: string) => {
-    setEditFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setEditFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   // Helper functions to get names from IDs, used in the doctor list display
   const getHospitalName = (hospitalId: string) => {
-    return hospitalsList.find((h) => h.id === hospitalId)?.name || "알 수 없음"
-  }
+    return hospitalsList.find((h) => h.id === hospitalId)?.name || "알 수 없음";
+  };
 
   const getDepartmentName = (departmentId: string) => {
-    return departmentsList.find((d) => d.id === departmentId)?.name || "알 수 없음"
-  }
+    return (
+      departmentsList.find((d) => d.id === departmentId)?.name || "알 수 없음"
+    );
+  };
 
   // Helper to get full hospital object by ID
   const getHospitalById = (hospitalId: string) => {
-    return hospitalsList.find((h) => h.id === hospitalId)
-  }
+    return hospitalsList.find((h) => h.id === hospitalId);
+  };
 
   // Helper to get full department object by ID
   const getDepartmentById = (departmentId?: string | null) => {
-    if (!departmentId) return undefined
-    return departmentsList.find((d) => d.id === departmentId)
-  }
+    if (!departmentId) return undefined;
+    return departmentsList.find((d) => d.id === departmentId);
+  };
 
   const handleEditClick = (doctor: Doctor) => {
-    setEditingDoctor(doctor)
+    setEditingDoctor(doctor);
     setEditFormData({
       name: doctor.name,
       rating: doctor.rating,
-      experience_years: typeof doctor.experience_years === "number" ? doctor.experience_years.toString() : doctor.experience_years,
+      experience_years:
+        typeof doctor.experience_years === "number"
+          ? doctor.experience_years.toString()
+          : doctor.experience_years,
       hospital_id: doctor.hospital_id,
       department_id: doctor.department_id || "none",
       email: doctor.email,
       phone: doctor.phone || "", // Include phone in edit form
       notes: doctor.notes || "",
-    })
-    setIsEditModalOpen(true)
-  }
+    });
+    setIsEditModalOpen(true);
+  };
 
   const handleUpdateDoctor = async () => {
-    if (!editingDoctor) return
+    if (!editingDoctor) return;
 
-    setIsUpdating(true)
-    setError(null)
+    setIsUpdating(true);
+    setError(null);
 
     try {
       const updatedDoctor: Doctor = {
@@ -264,198 +305,205 @@ export default function AddDoctorPage() {
         rating: editFormData.rating,
         experience_years: editFormData.experience_years, // 전문과목 (텍스트)
         hospital_id: editFormData.hospital_id,
-        department_id: editFormData.department_id && editFormData.department_id !== "none" ? editFormData.department_id : null,
+        department_id:
+          editFormData.department_id && editFormData.department_id !== "none"
+            ? editFormData.department_id
+            : null,
         email: editFormData.email,
         phone: editFormData.phone,
         notes: editFormData.notes,
-      }
+      };
 
-      await updateDoctorInSupabase(editingDoctor.id, updatedDoctor)
-      
+      await updateDoctorInSupabase(editingDoctor.id, updatedDoctor);
+
       // Refresh cache to reflect changes on main page
-      await fetch('/api/doctors', { method: 'POST' })
-      
-      await loadDoctors()
-      setEditingDoctor(null)
-      setIsEditModalOpen(false)
+      await fetch("/api/doctors", { method: "POST" });
+
+      await loadDoctors();
+      setEditingDoctor(null);
+      setIsEditModalOpen(false);
     } catch (err) {
-      console.error("Failed to update doctor:", err)
-      setError("의사 정보 수정에 실패했습니다. 다시 시도해주세요.")
+      console.error("Failed to update doctor:", err);
+      setError("의사 정보 수정에 실패했습니다. 다시 시도해주세요.");
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   const handleDeleteDoctor = async (doctorId: string) => {
-    setIsDeleting(doctorId)
-    setError(null)
+    setIsDeleting(doctorId);
+    setError(null);
 
     try {
-      await deleteDoctorFromSupabase(doctorId)
-      
+      await deleteDoctorFromSupabase(doctorId);
+
       // Refresh cache to reflect changes on main page
-      await fetch('/api/doctors', { method: 'POST' })
-      
-      await loadDoctors()
-      setDeleteConfirmId(null)
+      await fetch("/api/doctors", { method: "POST" });
+
+      await loadDoctors();
+      setDeleteConfirmId(null);
     } catch (err) {
-      console.error("Failed to delete doctor:", err)
-      setError("의사 삭제에 실패했습니다. 다시 시도해주세요.")
+      console.error("Failed to delete doctor:", err);
+      setError("의사 삭제에 실패했습니다. 다시 시도해주세요.");
     } finally {
-      setIsDeleting(null)
+      setIsDeleting(null);
     }
-  }
+  };
 
   const handleAddHospital = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newHospital.name || !newHospital.address || !newHospital.phone) return
+    e.preventDefault();
+    if (!newHospital.name || !newHospital.address || !newHospital.phone) return;
 
-    setIsAddingHospital(true)
-    setError(null)
+    setIsAddingHospital(true);
+    setError(null);
 
     try {
       const hospital = {
         name: newHospital.name,
         address: newHospital.address,
         phone: newHospital.phone,
-      }
+      };
 
-      await addHospitalToSupabase(hospital)
-      
+      await addHospitalToSupabase(hospital);
+
       // Refresh cache to reflect changes on main page
-      await fetch('/api/hospitals', { method: 'POST' })
-      
+      await fetch("/api/hospitals", { method: "POST" });
+
       // Send push notification
       try {
-        await fetch('/api/send-notification', {
-          method: 'POST',
+        await fetch("/api/send-notification", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            title: '새로운 병원 추가',
+            title: "새로운 병원 추가",
             body: `${newHospital.name} 병원이 새롭게 추가되었습니다.`,
             data: {
-              type: 'hospital_added',
+              type: "hospital_added",
               hospitalName: newHospital.name,
             },
           }),
-        })
-        console.log('Push notification sent successfully')
+        });
+        console.log("Push notification sent successfully");
       } catch (notifError) {
-        console.error('Failed to send push notification:', notifError)
+        console.error("Failed to send push notification:", notifError);
         // Don't fail the whole operation if notification fails
       }
-      
-      setNewHospital({ name: "", address: "", phone: "" })
-      await loadHospitalsAndDepartments()
+
+      setNewHospital({ name: "", address: "", phone: "" });
+      await loadHospitalsAndDepartments();
     } catch (err) {
-      console.error("Failed to add hospital:", err)
-      setError("병원 추가에 실패했습니다. 다시 시도해주세요.")
+      console.error("Failed to add hospital:", err);
+      setError("병원 추가에 실패했습니다 다시 시도해주세요.");
     } finally {
-      setIsAddingHospital(false)
+      setIsAddingHospital(false);
     }
-  }
+  };
 
   const handleAddDepartment = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newDepartment.name) return
+    e.preventDefault();
+    if (!newDepartment.name) return;
 
-    setIsAddingDepartment(true)
-    setError(null)
+    setIsAddingDepartment(true);
+    setError(null);
 
     try {
       const department = {
         name: newDepartment.name,
-      }
+      };
 
-      await addDepartmentToSupabase(department)
-      
+      await addDepartmentToSupabase(department);
+
       // Refresh cache to reflect changes on main page
-      await fetch('/api/departments', { method: 'POST' })
-      
-      setNewDepartment({ name: "" })
-      await loadHospitalsAndDepartments()
+      await fetch("/api/departments", { method: "POST" });
+
+      setNewDepartment({ name: "" });
+      await loadHospitalsAndDepartments();
     } catch (err) {
-      console.error("Failed to add department:", err)
-      setError("진료과 추가에 실패했습니다. 다시 시도해주세요.")
+      console.error("Failed to add department:", err);
+      setError("진료과 추가에 실패했습니다. 다시 시도해주세요.");
     } finally {
-      setIsAddingDepartment(false)
+      setIsAddingDepartment(false);
     }
-  }
+  };
 
   const handleDeleteHospital = async (hospitalId: string) => {
     // Check if any doctors are using this hospital
-    const doctorsUsingHospital = existingDoctors.filter((doctor) => doctor.hospital_id === hospitalId)
-    
+    const doctorsUsingHospital = existingDoctors.filter(
+      (doctor) => doctor.hospital_id === hospitalId,
+    );
+
     if (doctorsUsingHospital.length > 0) {
       setDeleteErrorMessage(
-        `이 병원을 사용하는 의사가 ${doctorsUsingHospital.length}명 있어 삭제할 수 없습니다.\n먼저 해당 의사들의 병원을 변경해주세요.`
-      )
-      return
+        `이 병원을 사용하는 의사가 ${doctorsUsingHospital.length}명 있어 삭제할 수 없습니다.\n먼저 해당 의사들의 병원을 변경해주세요.`,
+      );
+      return;
     }
 
     if (confirm("이 병원을 삭제하시겠습니까?")) {
-      setIsDeletingHospital(hospitalId)
-      setError(null)
+      setIsDeletingHospital(hospitalId);
+      setError(null);
 
       try {
-        await deleteHospitalFromSupabase(hospitalId)
-        
+        await deleteHospitalFromSupabase(hospitalId);
+
         // Refresh cache to reflect changes on main page
-        await fetch('/api/hospitals', { method: 'POST' })
-        
-        await loadHospitalsAndDepartments()
+        await fetch("/api/hospitals", { method: "POST" });
+
+        await loadHospitalsAndDepartments();
       } catch (err) {
-        console.error("Failed to delete hospital:", err)
-        setError("병원 삭제에 실패했습니다. 다시 시도해주세요.")
+        console.error("Failed to delete hospital:", err);
+        setError("병원 삭제에 실패했습니다. 다시 시도해주세요.");
       } finally {
-        setIsDeletingHospital(null)
+        setIsDeletingHospital(null);
       }
     }
-  }
+  };
 
   const handleDeleteDepartment = async (departmentId: string) => {
     // Check if any doctors are using this department
-    const doctorsUsingDepartment = existingDoctors.filter((doctor) => doctor.department_id === departmentId)
-    
+    const doctorsUsingDepartment = existingDoctors.filter(
+      (doctor) => doctor.department_id === departmentId,
+    );
+
     if (doctorsUsingDepartment.length > 0) {
       setDeleteErrorMessage(
-        `이 진료과를 사용하는 의사가 ${doctorsUsingDepartment.length}명 있어 삭제할 수 없습니다.\n먼저 해당 의사들의 진료과를 변경해주세요.`
-      )
-      return
+        `이 진료과를 사용하는 의사가 ${doctorsUsingDepartment.length}명 있어 삭제할 수 없습니다.\n먼저 해당 의사들의 진료과를 변경해주세요.`,
+      );
+      return;
     }
 
     if (confirm("이 진료과를 삭제하시겠습니까?")) {
-      setIsDeletingDepartment(departmentId)
-      setError(null)
+      setIsDeletingDepartment(departmentId);
+      setError(null);
 
       try {
-        await deleteDepartmentFromSupabase(departmentId)
-        
+        await deleteDepartmentFromSupabase(departmentId);
+
         // Refresh cache to reflect changes on main page
-        await fetch('/api/departments', { method: 'POST' })
-        
-        await loadHospitalsAndDepartments()
+        await fetch("/api/departments", { method: "POST" });
+
+        await loadHospitalsAndDepartments();
       } catch (err) {
-        console.error("Failed to delete department:", err)
-        setError("진료과 삭제에 실패했습니다. 다시 시도해주세요.")
+        console.error("Failed to delete department:", err);
+        setError("진료과 삭제에 실패했습니다. 다시 시도해주세요.");
       } finally {
-        setIsDeletingDepartment(null)
+        setIsDeletingDepartment(null);
       }
     }
-  }
+  };
 
   // Generic delete handler for doctors, used in the list
   const handleDelete = (doctorId: string) => {
-    setDeleteConfirmId(doctorId)
-  }
+    setDeleteConfirmId(doctorId);
+  };
 
   // Form handler for editing doctor (called from DialogFooter)
   const handleEditSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    handleUpdateDoctor()
-  }
+    e.preventDefault();
+    handleUpdateDoctor();
+  };
 
   // Prevent hydration mismatch by not rendering until mounted
   if (!isMounted || isCheckingAuth) {
@@ -466,12 +514,12 @@ export default function AddDoctorPage() {
           <p className="text-gray-600">인증 확인 중...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // Don't render anything if not authenticated (will redirect)
   if (!isAuthenticated) {
-    return null
+    return null;
   }
 
   return (
@@ -522,8 +570,12 @@ export default function AddDoctorPage() {
                       <UserPlus className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-2xl font-bold">의사 명단 추가</CardTitle>
-                      <CardDescription>새로운 의사 정보를 입력하세요</CardDescription>
+                      <CardTitle className="text-2xl font-bold">
+                        의사 명단 추가
+                      </CardTitle>
+                      <CardDescription>
+                        새로운 의사 정보를 입력하세요
+                      </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -550,7 +602,12 @@ export default function AddDoctorPage() {
                         <Label htmlFor="rating">
                           등급 <span className="text-red-500">*</span>
                         </Label>
-                        <Select value={formData.rating} onValueChange={(value) => handleChange("rating", value)}>
+                        <Select
+                          value={formData.rating}
+                          onValueChange={(value) =>
+                            handleChange("rating", value)
+                          }
+                        >
                           <SelectTrigger id="rating">
                             <SelectValue />
                           </SelectTrigger>
@@ -573,7 +630,9 @@ export default function AddDoctorPage() {
                           type="text"
                           placeholder="예: 심장내과, 정형외과 등"
                           value={formData.experience_years}
-                          onChange={(e) => handleChange("experience_years", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("experience_years", e.target.value)
+                          }
                           required
                         />
                       </div>
@@ -585,7 +644,9 @@ export default function AddDoctorPage() {
                         </Label>
                         <Select
                           value={formData.hospital_id}
-                          onValueChange={(value) => handleChange("hospital_id", value)}
+                          onValueChange={(value) =>
+                            handleChange("hospital_id", value)
+                          }
                         >
                           <SelectTrigger id="hospital">
                             <SelectValue placeholder="병원 선택" />
@@ -605,7 +666,9 @@ export default function AddDoctorPage() {
                         <Label htmlFor="department">진료과</Label>
                         <Select
                           value={formData.department_id}
-                          onValueChange={(value) => handleChange("department_id", value)}
+                          onValueChange={(value) =>
+                            handleChange("department_id", value)
+                          }
                         >
                           <SelectTrigger id="department">
                             <SelectValue placeholder="진료과 선택 (선택사항)" />
@@ -631,7 +694,9 @@ export default function AddDoctorPage() {
                           type="email"
                           placeholder="예: doctor@hospital.com"
                           value={formData.email}
-                          onChange={(e) => handleChange("email", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("email", e.target.value)
+                          }
                           required
                         />
                       </div>
@@ -644,7 +709,9 @@ export default function AddDoctorPage() {
                           type="tel"
                           placeholder="예: 02-1234-5678"
                           value={formData.phone}
-                          onChange={(e) => handleChange("phone", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("phone", e.target.value)
+                          }
                         />
                       </div>
 
@@ -655,7 +722,9 @@ export default function AddDoctorPage() {
                           id="notes"
                           placeholder="의사의 전문 분야, 특기, 경험, 진료 시간 등의 추가 정보를 입력하세요"
                           value={formData.notes}
-                          onChange={(e) => handleChange("notes", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("notes", e.target.value)
+                          }
                           className="min-h-[100px] resize-y"
                         />
                       </div>
@@ -664,19 +733,27 @@ export default function AddDoctorPage() {
                     {/* Success Message */}
                     {success && (
                       <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-sm text-green-600 font-medium">✓ 의사 정보가 성공적으로 추가되었습니다.</p>
+                        <p className="text-sm text-green-600 font-medium">
+                          ✓ 의사 정보가 성공적으로 추가되었습니다.
+                        </p>
                       </div>
                     )}
 
                     {/* Error Message */}
                     {error && (
                       <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-sm text-red-600 font-medium">✗ {error}</p>
+                        <p className="text-sm text-red-600 font-medium">
+                          ✗ {error}
+                        </p>
                       </div>
                     )}
 
                     {/* Submit Button */}
-                    <Button type="submit" disabled={isLoading} className="w-full h-11 text-base font-semibold">
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full h-11 text-base font-semibold"
+                    >
                       {isLoading ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -693,26 +770,44 @@ export default function AddDoctorPage() {
               {/* Existing Doctor List */}
               <Card className="shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold">기존 의사 명단</CardTitle>
+                  <CardTitle className="text-2xl font-bold">
+                    기존 의사 명단
+                  </CardTitle>
                   <CardDescription>
                     {doctorsSearch
                       ? `검색 결과: ${(() => {
                           const filtered = existingDoctors.filter((doctor) => {
-                            const searchLower = doctorsSearch.toLowerCase()
-                            const hospital = getHospitalById(doctor.hospital_id)
-                            const department = getDepartmentById(doctor.department_id)
+                            const searchLower = doctorsSearch.toLowerCase();
+                            const hospital = getHospitalById(
+                              doctor.hospital_id,
+                            );
+                            const department = getDepartmentById(
+                              doctor.department_id,
+                            );
                             return (
                               doctor.name.toLowerCase().includes(searchLower) ||
                               (typeof doctor.experience_years === "string"
-                                ? doctor.experience_years.toLowerCase().includes(searchLower)
-                                : doctor.experience_years.toString().toLowerCase().includes(searchLower)) ||
-                              hospital?.name.toLowerCase().includes(searchLower) ||
-                              department?.name.toLowerCase().includes(searchLower) ||
-                              doctor.email.toLowerCase().includes(searchLower) ||
-                              (doctor.phone && doctor.phone.includes(searchLower))
-                            )
-                          })
-                          return filtered.length
+                                ? doctor.experience_years
+                                    .toLowerCase()
+                                    .includes(searchLower)
+                                : doctor.experience_years
+                                    .toString()
+                                    .toLowerCase()
+                                    .includes(searchLower)) ||
+                              hospital?.name
+                                .toLowerCase()
+                                .includes(searchLower) ||
+                              department?.name
+                                .toLowerCase()
+                                .includes(searchLower) ||
+                              doctor.email
+                                .toLowerCase()
+                                .includes(searchLower) ||
+                              (doctor.phone &&
+                                doctor.phone.includes(searchLower))
+                            );
+                          });
+                          return filtered.length;
                         })()}명 (전체 ${existingDoctors.length}명)`
                       : `등록된 의사 목록 (총 ${existingDoctors.length}명)`}
                   </CardDescription>
@@ -726,8 +821,8 @@ export default function AddDoctorPage() {
                         placeholder="의사명, 전문과목, 병원명으로 검색..."
                         value={doctorsSearch}
                         onChange={(e) => {
-                          setDoctorsSearch(e.target.value)
-                          setDoctorsPage(1) // Reset to first page on search
+                          setDoctorsSearch(e.target.value);
+                          setDoctorsPage(1); // Reset to first page on search
                         }}
                         className="pl-10 pr-10"
                       />
@@ -737,8 +832,8 @@ export default function AddDoctorPage() {
                           size="sm"
                           className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
                           onClick={() => {
-                            setDoctorsSearch("")
-                            setDoctorsPage(1)
+                            setDoctorsSearch("");
+                            setDoctorsPage(1);
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -749,33 +844,55 @@ export default function AddDoctorPage() {
                   <div className="space-y-3">
                     {(() => {
                       // Filter doctors based on search
-                      const filteredDoctors = existingDoctors.filter((doctor) => {
-                        if (!doctorsSearch.trim()) return true
-                        const searchLower = doctorsSearch.toLowerCase()
-                        const hospital = getHospitalById(doctor.hospital_id)
-                        const department = getDepartmentById(doctor.department_id)
-                        return (
-                          doctor.name.toLowerCase().includes(searchLower) ||
-                          (typeof doctor.experience_years === "string"
-                            ? doctor.experience_years.toLowerCase().includes(searchLower)
-                            : doctor.experience_years.toString().toLowerCase().includes(searchLower)) ||
-                          hospital?.name.toLowerCase().includes(searchLower) ||
-                          department?.name.toLowerCase().includes(searchLower) ||
-                          doctor.email.toLowerCase().includes(searchLower) ||
-                          (doctor.phone && doctor.phone.includes(searchLower))
-                        )
-                      })
+                      const filteredDoctors = existingDoctors.filter(
+                        (doctor) => {
+                          if (!doctorsSearch.trim()) return true;
+                          const searchLower = doctorsSearch.toLowerCase();
+                          const hospital = getHospitalById(doctor.hospital_id);
+                          const department = getDepartmentById(
+                            doctor.department_id,
+                          );
+                          return (
+                            doctor.name.toLowerCase().includes(searchLower) ||
+                            (typeof doctor.experience_years === "string"
+                              ? doctor.experience_years
+                                  .toLowerCase()
+                                  .includes(searchLower)
+                              : doctor.experience_years
+                                  .toString()
+                                  .toLowerCase()
+                                  .includes(searchLower)) ||
+                            hospital?.name
+                              .toLowerCase()
+                              .includes(searchLower) ||
+                            department?.name
+                              .toLowerCase()
+                              .includes(searchLower) ||
+                            doctor.email.toLowerCase().includes(searchLower) ||
+                            (doctor.phone && doctor.phone.includes(searchLower))
+                          );
+                        },
+                      );
 
-                      const startIndex = (doctorsPage - 1) * itemsPerPage
-                      const endIndex = startIndex + itemsPerPage
-                      const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex)
-                      const totalPages = Math.ceil(filteredDoctors.length / itemsPerPage)
+                      const startIndex = (doctorsPage - 1) * itemsPerPage;
+                      const endIndex = startIndex + itemsPerPage;
+                      const paginatedDoctors = filteredDoctors.slice(
+                        startIndex,
+                        endIndex,
+                      );
+                      const totalPages = Math.ceil(
+                        filteredDoctors.length / itemsPerPage,
+                      );
 
                       return (
                         <>
                           {paginatedDoctors.map((doctor) => {
-                            const hospital = getHospitalById(doctor.hospital_id)
-                            const department = getDepartmentById(doctor.department_id)
+                            const hospital = getHospitalById(
+                              doctor.hospital_id,
+                            );
+                            const department = getDepartmentById(
+                              doctor.department_id,
+                            );
 
                             return (
                               <div
@@ -785,7 +902,9 @@ export default function AddDoctorPage() {
                                 <div className="flex justify-between items-start">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <h3 className="font-semibold text-lg">{doctor.name}</h3>
+                                      <h3 className="font-semibold text-lg">
+                                        {doctor.name}
+                                      </h3>
                                       <span
                                         className={`px-2 py-0.5 text-xs font-medium rounded ${
                                           doctor.rating === "A"
@@ -801,10 +920,17 @@ export default function AddDoctorPage() {
                                       </span>
                                     </div>
                                     <p className="text-sm text-muted-foreground">
-                                      {hospital?.name}{department?.name ? ` · ${department.name}` : ""}
+                                      {hospital?.name}
+                                      {department?.name
+                                        ? ` · ${department.name}`
+                                        : ""}
                                     </p>
-                                    <p className="text-sm text-muted-foreground">전문과목: {doctor.experience_years}</p>
-                                    <p className="text-sm text-muted-foreground">전화번호: {doctor.phone}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      전문과목: {doctor.experience_years}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      전화번호: {doctor.phone}
+                                    </p>
                                   </div>
                                   <div className="flex gap-2">
                                     <Button
@@ -833,11 +959,13 @@ export default function AddDoctorPage() {
                                   </div>
                                 </div>
                               </div>
-                            )
+                            );
                           })}
                           {filteredDoctors.length === 0 && (
                             <p className="text-center text-muted-foreground py-8">
-                              {doctorsSearch ? "검색 결과가 없습니다." : "등록된 의사가 없습니다."}
+                              {doctorsSearch
+                                ? "검색 결과가 없습니다."
+                                : "등록된 의사가 없습니다."}
                             </p>
                           )}
                           {filteredDoctors.length > 0 && totalPages > 1 && (
@@ -848,55 +976,78 @@ export default function AddDoctorPage() {
                                     <PaginationPrevious
                                       href="#"
                                       onClick={(e) => {
-                                        e.preventDefault()
-                                        if (doctorsPage > 1) setDoctorsPage(doctorsPage - 1)
+                                        e.preventDefault();
+                                        if (doctorsPage > 1)
+                                          setDoctorsPage(doctorsPage - 1);
                                       }}
-                                      className={doctorsPage === 1 ? "pointer-events-none opacity-50" : ""}
+                                      className={
+                                        doctorsPage === 1
+                                          ? "pointer-events-none opacity-50"
+                                          : ""
+                                      }
                                     />
                                   </PaginationItem>
-                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                                  {Array.from(
+                                    { length: totalPages },
+                                    (_, i) => i + 1,
+                                  ).map((page) => {
                                     // Show first page, last page, current page, and pages around current
-                                    const showPage = 
-                                      page === 1 || 
-                                      page === totalPages || 
-                                      (page >= doctorsPage - 1 && page <= doctorsPage + 1)
-                                    
-                                    const showEllipsisBefore = page === doctorsPage - 2 && doctorsPage > 3
-                                    const showEllipsisAfter = page === doctorsPage + 2 && doctorsPage < totalPages - 2
-                                    
-                                    if (showEllipsisBefore || showEllipsisAfter) {
+                                    const showPage =
+                                      page === 1 ||
+                                      page === totalPages ||
+                                      (page >= doctorsPage - 1 &&
+                                        page <= doctorsPage + 1);
+
+                                    const showEllipsisBefore =
+                                      page === doctorsPage - 2 &&
+                                      doctorsPage > 3;
+                                    const showEllipsisAfter =
+                                      page === doctorsPage + 2 &&
+                                      doctorsPage < totalPages - 2;
+
+                                    if (
+                                      showEllipsisBefore ||
+                                      showEllipsisAfter
+                                    ) {
                                       return (
                                         <PaginationItem key={page}>
-                                          <span className="px-4 text-muted-foreground">...</span>
+                                          <span className="px-4 text-muted-foreground">
+                                            ...
+                                          </span>
                                         </PaginationItem>
-                                      )
+                                      );
                                     }
-                                    
-                                    if (!showPage) return null
-                                    
+
+                                    if (!showPage) return null;
+
                                     return (
                                       <PaginationItem key={page}>
                                         <PaginationLink
                                           href="#"
                                           onClick={(e) => {
-                                            e.preventDefault()
-                                            setDoctorsPage(page)
+                                            e.preventDefault();
+                                            setDoctorsPage(page);
                                           }}
                                           isActive={doctorsPage === page}
                                         >
                                           {page}
                                         </PaginationLink>
                                       </PaginationItem>
-                                    )
+                                    );
                                   })}
                                   <PaginationItem>
                                     <PaginationNext
                                       href="#"
                                       onClick={(e) => {
-                                        e.preventDefault()
-                                        if (doctorsPage < totalPages) setDoctorsPage(doctorsPage + 1)
+                                        e.preventDefault();
+                                        if (doctorsPage < totalPages)
+                                          setDoctorsPage(doctorsPage + 1);
                                       }}
-                                      className={doctorsPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                                      className={
+                                        doctorsPage === totalPages
+                                          ? "pointer-events-none opacity-50"
+                                          : ""
+                                      }
                                     />
                                   </PaginationItem>
                                 </PaginationContent>
@@ -904,7 +1055,7 @@ export default function AddDoctorPage() {
                             </div>
                           )}
                         </>
-                      )
+                      );
                     })()}
                   </div>
                 </CardContent>
@@ -917,8 +1068,12 @@ export default function AddDoctorPage() {
               {/* Add Hospital Form */}
               <Card className="shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold">병원 추가</CardTitle>
-                  <CardDescription>새로운 병원 정보를 입력하세요</CardDescription>
+                  <CardTitle className="text-2xl font-bold">
+                    병원 추가
+                  </CardTitle>
+                  <CardDescription>
+                    새로운 병원 정보를 입력하세요
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleAddHospital} className="space-y-4">
@@ -930,7 +1085,12 @@ export default function AddDoctorPage() {
                         id="hospital-name"
                         placeholder="예: 서울대학교병원"
                         value={newHospital.name}
-                        onChange={(e) => setNewHospital({ ...newHospital, name: e.target.value })}
+                        onChange={(e) =>
+                          setNewHospital({
+                            ...newHospital,
+                            name: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -942,7 +1102,12 @@ export default function AddDoctorPage() {
                         id="hospital-address"
                         placeholder="예: 서울시 종로구"
                         value={newHospital.address}
-                        onChange={(e) => setNewHospital({ ...newHospital, address: e.target.value })}
+                        onChange={(e) =>
+                          setNewHospital({
+                            ...newHospital,
+                            address: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -955,11 +1120,20 @@ export default function AddDoctorPage() {
                         type="tel"
                         placeholder="예: 02-2072-2114"
                         value={newHospital.phone}
-                        onChange={(e) => setNewHospital({ ...newHospital, phone: e.target.value })}
+                        onChange={(e) =>
+                          setNewHospital({
+                            ...newHospital,
+                            phone: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
-                    <Button type="submit" disabled={isAddingHospital} className="w-full">
+                    <Button
+                      type="submit"
+                      disabled={isAddingHospital}
+                      className="w-full"
+                    >
                       {isAddingHospital ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -976,17 +1150,21 @@ export default function AddDoctorPage() {
               {/* Hospital List */}
               <Card className="shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold">등록된 병원</CardTitle>
+                  <CardTitle className="text-2xl font-bold">
+                    등록된 병원
+                  </CardTitle>
                   <CardDescription>
                     {hospitalsSearch
-                      ? `검색 결과: ${hospitalsList.filter((h) => {
-                          const searchLower = hospitalsSearch.toLowerCase()
-                          return (
-                            h.name.toLowerCase().includes(searchLower) ||
-                            h.address.toLowerCase().includes(searchLower) ||
-                            h.phone.includes(searchLower)
-                          )
-                        }).length}개 (전체 ${hospitalsList.length}개)`
+                      ? `검색 결과: ${
+                          hospitalsList.filter((h) => {
+                            const searchLower = hospitalsSearch.toLowerCase();
+                            return (
+                              h.name.toLowerCase().includes(searchLower) ||
+                              h.address.toLowerCase().includes(searchLower) ||
+                              h.phone.includes(searchLower)
+                            );
+                          }).length
+                        }개 (전체 ${hospitalsList.length}개)`
                       : `총 ${hospitalsList.length}개`}
                   </CardDescription>
                 </CardHeader>
@@ -999,8 +1177,8 @@ export default function AddDoctorPage() {
                         placeholder="병원명, 주소, 전화번호로 검색..."
                         value={hospitalsSearch}
                         onChange={(e) => {
-                          setHospitalsSearch(e.target.value)
-                          setHospitalsPage(1)
+                          setHospitalsSearch(e.target.value);
+                          setHospitalsPage(1);
                         }}
                         className="pl-10 pr-10"
                       />
@@ -1010,8 +1188,8 @@ export default function AddDoctorPage() {
                           size="sm"
                           className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
                           onClick={() => {
-                            setHospitalsSearch("")
-                            setHospitalsPage(1)
+                            setHospitalsSearch("");
+                            setHospitalsPage(1);
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -1022,20 +1200,29 @@ export default function AddDoctorPage() {
                   <div className="space-y-3">
                     {(() => {
                       // Filter hospitals based on search
-                      const filteredHospitals = hospitalsList.filter((hospital) => {
-                        if (!hospitalsSearch.trim()) return true
-                        const searchLower = hospitalsSearch.toLowerCase()
-                        return (
-                          hospital.name.toLowerCase().includes(searchLower) ||
-                          hospital.address.toLowerCase().includes(searchLower) ||
-                          hospital.phone.includes(searchLower)
-                        )
-                      })
+                      const filteredHospitals = hospitalsList.filter(
+                        (hospital) => {
+                          if (!hospitalsSearch.trim()) return true;
+                          const searchLower = hospitalsSearch.toLowerCase();
+                          return (
+                            hospital.name.toLowerCase().includes(searchLower) ||
+                            hospital.address
+                              .toLowerCase()
+                              .includes(searchLower) ||
+                            hospital.phone.includes(searchLower)
+                          );
+                        },
+                      );
 
-                      const startIndex = (hospitalsPage - 1) * itemsPerPage
-                      const endIndex = startIndex + itemsPerPage
-                      const paginatedHospitals = filteredHospitals.slice(startIndex, endIndex)
-                      const totalPages = Math.ceil(filteredHospitals.length / itemsPerPage)
+                      const startIndex = (hospitalsPage - 1) * itemsPerPage;
+                      const endIndex = startIndex + itemsPerPage;
+                      const paginatedHospitals = filteredHospitals.slice(
+                        startIndex,
+                        endIndex,
+                      );
+                      const totalPages = Math.ceil(
+                        filteredHospitals.length / itemsPerPage,
+                      );
 
                       return (
                         <>
@@ -1046,14 +1233,22 @@ export default function AddDoctorPage() {
                             >
                               <div className="flex justify-between items-start">
                                 <div>
-                                  <h3 className="font-semibold text-lg">{hospital.name}</h3>
-                                  <p className="text-sm text-gray-600 mt-1">{hospital.address}</p>
-                                  <p className="text-sm text-gray-600">{hospital.phone}</p>
+                                  <h3 className="font-semibold text-lg">
+                                    {hospital.name}
+                                  </h3>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    {hospital.address}
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    {hospital.phone}
+                                  </p>
                                 </div>
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleDeleteHospital(hospital.id)}
+                                  onClick={() =>
+                                    handleDeleteHospital(hospital.id)
+                                  }
                                   disabled={isDeletingHospital === hospital.id}
                                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                 >
@@ -1068,7 +1263,9 @@ export default function AddDoctorPage() {
                           ))}
                           {filteredHospitals.length === 0 && (
                             <p className="text-center text-muted-foreground py-8">
-                              {hospitalsSearch ? "검색 결과가 없습니다." : "등록된 병원이 없습니다."}
+                              {hospitalsSearch
+                                ? "검색 결과가 없습니다."
+                                : "등록된 병원이 없습니다."}
                             </p>
                           )}
                           {filteredHospitals.length > 0 && totalPages > 1 && (
@@ -1079,55 +1276,78 @@ export default function AddDoctorPage() {
                                     <PaginationPrevious
                                       href="#"
                                       onClick={(e) => {
-                                        e.preventDefault()
-                                        if (hospitalsPage > 1) setHospitalsPage(hospitalsPage - 1)
+                                        e.preventDefault();
+                                        if (hospitalsPage > 1)
+                                          setHospitalsPage(hospitalsPage - 1);
                                       }}
-                                      className={hospitalsPage === 1 ? "pointer-events-none opacity-50" : ""}
+                                      className={
+                                        hospitalsPage === 1
+                                          ? "pointer-events-none opacity-50"
+                                          : ""
+                                      }
                                     />
                                   </PaginationItem>
-                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                                  {Array.from(
+                                    { length: totalPages },
+                                    (_, i) => i + 1,
+                                  ).map((page) => {
                                     // Show first page, last page, current page, and pages around current
-                                    const showPage = 
-                                      page === 1 || 
-                                      page === totalPages || 
-                                      (page >= hospitalsPage - 1 && page <= hospitalsPage + 1)
-                                    
-                                    const showEllipsisBefore = page === hospitalsPage - 2 && hospitalsPage > 3
-                                    const showEllipsisAfter = page === hospitalsPage + 2 && hospitalsPage < totalPages - 2
-                                    
-                                    if (showEllipsisBefore || showEllipsisAfter) {
+                                    const showPage =
+                                      page === 1 ||
+                                      page === totalPages ||
+                                      (page >= hospitalsPage - 1 &&
+                                        page <= hospitalsPage + 1);
+
+                                    const showEllipsisBefore =
+                                      page === hospitalsPage - 2 &&
+                                      hospitalsPage > 3;
+                                    const showEllipsisAfter =
+                                      page === hospitalsPage + 2 &&
+                                      hospitalsPage < totalPages - 2;
+
+                                    if (
+                                      showEllipsisBefore ||
+                                      showEllipsisAfter
+                                    ) {
                                       return (
                                         <PaginationItem key={page}>
-                                          <span className="px-4 text-muted-foreground">...</span>
+                                          <span className="px-4 text-muted-foreground">
+                                            ...
+                                          </span>
                                         </PaginationItem>
-                                      )
+                                      );
                                     }
-                                    
-                                    if (!showPage) return null
-                                    
+
+                                    if (!showPage) return null;
+
                                     return (
                                       <PaginationItem key={page}>
                                         <PaginationLink
                                           href="#"
                                           onClick={(e) => {
-                                            e.preventDefault()
-                                            setHospitalsPage(page)
+                                            e.preventDefault();
+                                            setHospitalsPage(page);
                                           }}
                                           isActive={hospitalsPage === page}
                                         >
                                           {page}
                                         </PaginationLink>
                                       </PaginationItem>
-                                    )
+                                    );
                                   })}
                                   <PaginationItem>
                                     <PaginationNext
                                       href="#"
                                       onClick={(e) => {
-                                        e.preventDefault()
-                                        if (hospitalsPage < totalPages) setHospitalsPage(hospitalsPage + 1)
+                                        e.preventDefault();
+                                        if (hospitalsPage < totalPages)
+                                          setHospitalsPage(hospitalsPage + 1);
                                       }}
-                                      className={hospitalsPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                                      className={
+                                        hospitalsPage === totalPages
+                                          ? "pointer-events-none opacity-50"
+                                          : ""
+                                      }
                                     />
                                   </PaginationItem>
                                 </PaginationContent>
@@ -1135,7 +1355,7 @@ export default function AddDoctorPage() {
                             </div>
                           )}
                         </>
-                      )
+                      );
                     })()}
                   </div>
                 </CardContent>
@@ -1149,7 +1369,9 @@ export default function AddDoctorPage() {
               {/* Add Department Form */}
               <Card className="shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold">진료과 추가</CardTitle>
+                  <CardTitle className="text-2xl font-bold">
+                    진료과 추가
+                  </CardTitle>
                   <CardDescription>새로운 진료과를 입력하세요</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1162,11 +1384,17 @@ export default function AddDoctorPage() {
                         id="department-name"
                         placeholder="예: 정형외과"
                         value={newDepartment.name}
-                        onChange={(e) => setNewDepartment({ name: e.target.value })}
+                        onChange={(e) =>
+                          setNewDepartment({ name: e.target.value })
+                        }
                         required
                       />
                     </div>
-                    <Button type="submit" disabled={isAddingDepartment} className="w-full">
+                    <Button
+                      type="submit"
+                      disabled={isAddingDepartment}
+                      className="w-full"
+                    >
                       {isAddingDepartment ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -1183,12 +1411,18 @@ export default function AddDoctorPage() {
               {/* Department List */}
               <Card className="shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold">등록된 진료과</CardTitle>
+                  <CardTitle className="text-2xl font-bold">
+                    등록된 진료과
+                  </CardTitle>
                   <CardDescription>
                     {departmentsSearch
-                      ? `검색 결과: ${departmentsList.filter((d) =>
-                          d.name.toLowerCase().includes(departmentsSearch.toLowerCase())
-                        ).length}개 (전체 ${departmentsList.length}개)`
+                      ? `검색 결과: ${
+                          departmentsList.filter((d) =>
+                            d.name
+                              .toLowerCase()
+                              .includes(departmentsSearch.toLowerCase()),
+                          ).length
+                        }개 (전체 ${departmentsList.length}개)`
                       : `총 ${departmentsList.length}개`}
                   </CardDescription>
                 </CardHeader>
@@ -1201,8 +1435,8 @@ export default function AddDoctorPage() {
                         placeholder="진료과명으로 검색..."
                         value={departmentsSearch}
                         onChange={(e) => {
-                          setDepartmentsSearch(e.target.value)
-                          setDepartmentsPage(1)
+                          setDepartmentsSearch(e.target.value);
+                          setDepartmentsPage(1);
                         }}
                         className="pl-10 pr-10"
                       />
@@ -1212,8 +1446,8 @@ export default function AddDoctorPage() {
                           size="sm"
                           className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
                           onClick={() => {
-                            setDepartmentsSearch("")
-                            setDepartmentsPage(1)
+                            setDepartmentsSearch("");
+                            setDepartmentsPage(1);
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -1224,26 +1458,42 @@ export default function AddDoctorPage() {
                   <div className="space-y-3">
                     {(() => {
                       // Filter departments based on search
-                      const filteredDepartments = departmentsList.filter((dept) => {
-                        if (!departmentsSearch.trim()) return true
-                        return dept.name.toLowerCase().includes(departmentsSearch.toLowerCase())
-                      })
+                      const filteredDepartments = departmentsList.filter(
+                        (dept) => {
+                          if (!departmentsSearch.trim()) return true;
+                          return dept.name
+                            .toLowerCase()
+                            .includes(departmentsSearch.toLowerCase());
+                        },
+                      );
 
-                      const startIndex = (departmentsPage - 1) * itemsPerPage
-                      const endIndex = startIndex + itemsPerPage
-                      const paginatedDepartments = filteredDepartments.slice(startIndex, endIndex)
-                      const totalPages = Math.ceil(filteredDepartments.length / itemsPerPage)
+                      const startIndex = (departmentsPage - 1) * itemsPerPage;
+                      const endIndex = startIndex + itemsPerPage;
+                      const paginatedDepartments = filteredDepartments.slice(
+                        startIndex,
+                        endIndex,
+                      );
+                      const totalPages = Math.ceil(
+                        filteredDepartments.length / itemsPerPage,
+                      );
 
                       return (
                         <>
                           {paginatedDepartments.map((dept) => (
-                            <div key={dept.id} className="p-4 border rounded-lg bg-white hover:shadow-md transition-shadow">
+                            <div
+                              key={dept.id}
+                              className="p-4 border rounded-lg bg-white hover:shadow-md transition-shadow"
+                            >
                               <div className="flex justify-between items-center">
-                                <h3 className="font-semibold text-lg">{dept.name}</h3>
+                                <h3 className="font-semibold text-lg">
+                                  {dept.name}
+                                </h3>
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleDeleteDepartment(dept.id)}
+                                  onClick={() =>
+                                    handleDeleteDepartment(dept.id)
+                                  }
                                   disabled={isDeletingDepartment === dept.id}
                                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                 >
@@ -1258,7 +1508,9 @@ export default function AddDoctorPage() {
                           ))}
                           {filteredDepartments.length === 0 && (
                             <p className="text-center text-muted-foreground py-8">
-                              {departmentsSearch ? "검색 결과가 없습니다." : "등록된 진료과가 없습니다."}
+                              {departmentsSearch
+                                ? "검색 결과가 없습니다."
+                                : "등록된 진료과가 없습니다."}
                             </p>
                           )}
                           {filteredDepartments.length > 0 && totalPages > 1 && (
@@ -1269,55 +1521,82 @@ export default function AddDoctorPage() {
                                     <PaginationPrevious
                                       href="#"
                                       onClick={(e) => {
-                                        e.preventDefault()
-                                        if (departmentsPage > 1) setDepartmentsPage(departmentsPage - 1)
+                                        e.preventDefault();
+                                        if (departmentsPage > 1)
+                                          setDepartmentsPage(
+                                            departmentsPage - 1,
+                                          );
                                       }}
-                                      className={departmentsPage === 1 ? "pointer-events-none opacity-50" : ""}
+                                      className={
+                                        departmentsPage === 1
+                                          ? "pointer-events-none opacity-50"
+                                          : ""
+                                      }
                                     />
                                   </PaginationItem>
-                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                                  {Array.from(
+                                    { length: totalPages },
+                                    (_, i) => i + 1,
+                                  ).map((page) => {
                                     // Show first page, last page, current page, and pages around current
-                                    const showPage = 
-                                      page === 1 || 
-                                      page === totalPages || 
-                                      (page >= departmentsPage - 1 && page <= departmentsPage + 1)
-                                    
-                                    const showEllipsisBefore = page === departmentsPage - 2 && departmentsPage > 3
-                                    const showEllipsisAfter = page === departmentsPage + 2 && departmentsPage < totalPages - 2
-                                    
-                                    if (showEllipsisBefore || showEllipsisAfter) {
+                                    const showPage =
+                                      page === 1 ||
+                                      page === totalPages ||
+                                      (page >= departmentsPage - 1 &&
+                                        page <= departmentsPage + 1);
+
+                                    const showEllipsisBefore =
+                                      page === departmentsPage - 2 &&
+                                      departmentsPage > 3;
+                                    const showEllipsisAfter =
+                                      page === departmentsPage + 2 &&
+                                      departmentsPage < totalPages - 2;
+
+                                    if (
+                                      showEllipsisBefore ||
+                                      showEllipsisAfter
+                                    ) {
                                       return (
                                         <PaginationItem key={page}>
-                                          <span className="px-4 text-muted-foreground">...</span>
+                                          <span className="px-4 text-muted-foreground">
+                                            ...
+                                          </span>
                                         </PaginationItem>
-                                      )
+                                      );
                                     }
-                                    
-                                    if (!showPage) return null
-                                    
+
+                                    if (!showPage) return null;
+
                                     return (
                                       <PaginationItem key={page}>
                                         <PaginationLink
                                           href="#"
                                           onClick={(e) => {
-                                            e.preventDefault()
-                                            setDepartmentsPage(page)
+                                            e.preventDefault();
+                                            setDepartmentsPage(page);
                                           }}
                                           isActive={departmentsPage === page}
                                         >
                                           {page}
                                         </PaginationLink>
                                       </PaginationItem>
-                                    )
+                                    );
                                   })}
                                   <PaginationItem>
                                     <PaginationNext
                                       href="#"
                                       onClick={(e) => {
-                                        e.preventDefault()
-                                        if (departmentsPage < totalPages) setDepartmentsPage(departmentsPage + 1)
+                                        e.preventDefault();
+                                        if (departmentsPage < totalPages)
+                                          setDepartmentsPage(
+                                            departmentsPage + 1,
+                                          );
                                       }}
-                                      className={departmentsPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                                      className={
+                                        departmentsPage === totalPages
+                                          ? "pointer-events-none opacity-50"
+                                          : ""
+                                      }
                                     />
                                   </PaginationItem>
                                 </PaginationContent>
@@ -1325,7 +1604,7 @@ export default function AddDoctorPage() {
                             </div>
                           )}
                         </>
-                      )
+                      );
                     })()}
                   </div>
                 </CardContent>
@@ -1336,19 +1615,30 @@ export default function AddDoctorPage() {
       </main>
 
       {/* Delete Confirmation Dialog for Doctors */}
-      <Dialog open={deleteConfirmId !== null} onOpenChange={() => setDeleteConfirmId(null)}>
+      <Dialog
+        open={deleteConfirmId !== null}
+        onOpenChange={() => setDeleteConfirmId(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>의사 삭제 확인</DialogTitle>
-            <DialogDescription>정말로 이 의사를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</DialogDescription>
+            <DialogDescription>
+              정말로 이 의사를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirmId(null)} disabled={isDeleting !== null}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmId(null)}
+              disabled={isDeleting !== null}
+            >
               취소
             </Button>
             <Button
               variant="destructive"
-              onClick={() => deleteConfirmId && handleDeleteDoctor(deleteConfirmId)}
+              onClick={() =>
+                deleteConfirmId && handleDeleteDoctor(deleteConfirmId)
+              }
               disabled={isDeleting !== null}
             >
               {isDeleting ? (
@@ -1365,11 +1655,16 @@ export default function AddDoctorPage() {
       </Dialog>
 
       {/* Delete Error Dialog */}
-      <Dialog open={deleteErrorMessage !== null} onOpenChange={() => setDeleteErrorMessage(null)}>
+      <Dialog
+        open={deleteErrorMessage !== null}
+        onOpenChange={() => setDeleteErrorMessage(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>삭제할 수 없습니다</DialogTitle>
-            <DialogDescription className="whitespace-pre-line">{deleteErrorMessage}</DialogDescription>
+            <DialogDescription className="whitespace-pre-line">
+              {deleteErrorMessage}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button onClick={() => setDeleteErrorMessage(null)}>확인</Button>
@@ -1402,7 +1697,9 @@ export default function AddDoctorPage() {
                 <Label htmlFor="edit-rating">등급</Label>
                 <Select
                   value={editFormData.rating}
-                  onValueChange={(value) => handleEditChange("rating", value as "A" | "B" | "C" | "D")}
+                  onValueChange={(value) =>
+                    handleEditChange("rating", value as "A" | "B" | "C" | "D")
+                  }
                 >
                   <SelectTrigger id="edit-rating">
                     <SelectValue />
@@ -1424,7 +1721,9 @@ export default function AddDoctorPage() {
                   type="text"
                   placeholder="예: 심장내과, 정형외과 등"
                   value={editFormData.experience_years}
-                  onChange={(e) => handleEditChange("experience_years", e.target.value)}
+                  onChange={(e) =>
+                    handleEditChange("experience_years", e.target.value)
+                  }
                   required
                 />
               </div>
@@ -1434,7 +1733,9 @@ export default function AddDoctorPage() {
                 <Label htmlFor="edit-hospital">병원</Label>
                 <Select
                   value={editFormData.hospital_id}
-                  onValueChange={(value) => handleEditChange("hospital_id", value)}
+                  onValueChange={(value) =>
+                    handleEditChange("hospital_id", value)
+                  }
                 >
                   <SelectTrigger id="edit-hospital">
                     <SelectValue placeholder="병원 선택" />
@@ -1454,7 +1755,9 @@ export default function AddDoctorPage() {
                 <Label htmlFor="edit-department">진료과</Label>
                 <Select
                   value={editFormData.department_id}
-                  onValueChange={(value) => handleEditChange("department_id", value)}
+                  onValueChange={(value) =>
+                    handleEditChange("department_id", value)
+                  }
                 >
                   <SelectTrigger id="edit-department">
                     <SelectValue placeholder="진료과 선택 (선택사항)" />
@@ -1506,7 +1809,12 @@ export default function AddDoctorPage() {
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)} disabled={isUpdating}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditModalOpen(false)}
+                disabled={isUpdating}
+              >
                 취소
               </Button>
               <Button type="submit" disabled={isUpdating}>
@@ -1524,5 +1832,5 @@ export default function AddDoctorPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
