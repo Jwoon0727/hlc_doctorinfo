@@ -371,7 +371,8 @@ export default function AddDoctorPage() {
 
       // Send push notification
       try {
-        await fetch("/api/send-notification", {
+        console.log("🔔 Sending push notification...");
+        const notificationResponse = await fetch("/api/send-notification", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -385,9 +386,30 @@ export default function AddDoctorPage() {
             },
           }),
         });
-        console.log("Push notification sent successfully");
+        
+        console.log("📡 Notification API response status:", notificationResponse.status);
+        
+        const responseData = await notificationResponse.json();
+        console.log("📦 Notification API response data:", responseData);
+        
+        if (!notificationResponse.ok) {
+          console.error("❌ Notification API returned error:", {
+            status: notificationResponse.status,
+            statusText: notificationResponse.statusText,
+            data: responseData
+          });
+        } else {
+          console.log("✅ Push notification sent successfully:", responseData);
+        }
       } catch (notifError) {
-        console.error("Failed to send push notification:", notifError);
+        console.error("❌ Failed to send push notification:", notifError);
+        if (notifError instanceof Error) {
+          console.error("Error details:", {
+            message: notifError.message,
+            name: notifError.name,
+            stack: notifError.stack
+          });
+        }
         // Don't fail the whole operation if notification fails
       }
 
