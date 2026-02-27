@@ -384,6 +384,19 @@ export function DoctorSearchPage() {
 
   const handleNotificationAccept = async () => {
     try {
+      // Check if running on iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                          (window.navigator as any).standalone === true;
+      
+      // If on iOS but not installed as PWA, show installation guide
+      if (isIOS && !isStandalone) {
+        alert('📱 iOS에서 알림을 받으려면:\n\n1. Safari에서 하단의 "공유" 버튼을 누르세요\n2. "홈 화면에 추가"를 선택하세요\n3. 설치 후 홈 화면의 앱 아이콘으로 실행하세요\n\n설치된 앱에서만 푸시 알림을 받을 수 있습니다.');
+        localStorage.setItem('notification-preference', 'pending-ios-install');
+        setIsNotificationModalOpen(false);
+        return;
+      }
+      
       // Request notification permission
       const permission = await Notification.requestPermission();
       
@@ -404,10 +417,16 @@ export function DoctorSearchPage() {
             },
             body: JSON.stringify({ token }),
           });
+          
+          console.log('✅ Notification permission granted and token registered');
         }
+      } else if (permission === 'denied') {
+        alert('알림 권한이 거부되었습니다. 브라우저 설정에서 알림을 허용해주세요.');
+        localStorage.setItem('notification-preference', 'denied');
       }
     } catch (error) {
       console.error('Failed to request notification permission:', error);
+      alert('알림 설정 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsNotificationModalOpen(false);
     }
@@ -1555,6 +1574,23 @@ export function DoctorSearchPage() {
                     알림은 언제든지 브라우저 설정에서 끌 수 있습니다.
                     한 번 설정하면 이 메시지는 다시 표시되지 않습니다.
                   </p>
+                </div>
+              </div>
+
+              {/* iOS 사용자를 위한 안내 */}
+              <div className="flex items-start gap-3 p-4 rounded-lg bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-orange-900 dark:text-orange-100 mb-2 text-sm">
+                    📱 iOS 사용자 안내
+                  </h4>
+                  <p className="text-xs text-orange-700 dark:text-orange-300 mb-2">
+                    iPhone/iPad에서 알림을 받으려면 앱을 설치해야 합니다:
+                  </p>
+                  <ol className="space-y-1 text-xs text-orange-700 dark:text-orange-300 list-decimal list-inside">
+                    <li>Safari에서 하단 공유 버튼 탭</li>
+                    <li>"홈 화면에 추가" 선택</li>
+                    <li>홈 화면의 앱 아이콘으로 실행</li>
+                  </ol>
                 </div>
               </div>
             </div>

@@ -14,23 +14,43 @@ export const metadata: Metadata = {
   description: "천안 hlc&pvg 외에 다른 유저의 접근을 제한합니다.",
   generator: "v0.app",
   manifest: "/manifest.json", 
-  themeColor: "#f8fafc",
+  themeColor: "#3b82f6",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "협조의사명단",
+  },
   icons: {
     icon: [
       {
-        url: "public/logo32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
         url: "/logo32.png",
-        type: "image/svg+xml",
+        sizes: "32x32",
+        type: "image/png",
+      },
+      {
+        url: "/icons/logo192192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/icons/logo512.png",
+        sizes: "512x512",
+        type: "image/png",
       },
     ],
-    apple: "/apple-icon.png",
+    apple: [
+      {
+        url: "/icons/logo192192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+    ],
   },
   
 }

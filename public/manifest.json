@@ -1,12 +1,15 @@
 {
     "name": "협조의사/일반의사 의료진 찾기",
     "short_name": "협조의사명단",
-    "theme_color": "#f8fafc",
-    "background_color": "#f8fafc",
+    "description": "천안 HLC&PVG 협조의사 및 일반의사 검색 서비스",
+    "theme_color": "#3b82f6",
+    "background_color": "#ffffff",
     "display": "standalone",
     "orientation": "portrait",
     "scope": "/",
-    "start_url": "/",
+    "start_url": "/?source=pwa",
+    "id": "/",
+    "categories": ["medical", "healthcare"],
     "icons": [
       {
         "src": "/icons/logo192192.png",
@@ -19,7 +22,13 @@
         "sizes": "512x512",
         "type": "image/png",
         "purpose": "maskable any"
+      },
+      {
+        "src": "/logo32.png",
+        "sizes": "32x32",
+        "type": "image/png"
       }
     ],
-    "splash_pages": null
+    "screenshots": [],
+    "prefer_related_applications": false
 }
