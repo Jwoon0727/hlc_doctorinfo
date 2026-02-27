@@ -325,6 +325,28 @@ export default function AddDoctorPage() {
       // Refresh cache to reflect changes on main page
       await fetch('/api/hospitals', { method: 'POST' })
       
+      // Send push notification
+      try {
+        await fetch('/api/send-notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: '새로운 병원 추가',
+            body: `${newHospital.name} 병원이 새롭게 추가되었습니다.`,
+            data: {
+              type: 'hospital_added',
+              hospitalName: newHospital.name,
+            },
+          }),
+        })
+        console.log('Push notification sent successfully')
+      } catch (notifError) {
+        console.error('Failed to send push notification:', notifError)
+        // Don't fail the whole operation if notification fails
+      }
+      
       setNewHospital({ name: "", address: "", phone: "" })
       await loadHospitalsAndDepartments()
     } catch (err) {
