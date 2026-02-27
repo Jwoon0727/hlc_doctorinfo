@@ -386,17 +386,20 @@ export default function AddDoctorPage() {
             },
           }),
         });
-        
-        console.log("📡 Notification API response status:", notificationResponse.status);
-        
+
+        console.log(
+          "📡 Notification API response status:",
+          notificationResponse.status,
+        );
+
         const responseData = await notificationResponse.json();
         console.log("📦 Notification API response data:", responseData);
-        
+
         if (!notificationResponse.ok) {
           console.error("❌ Notification API returned error:", {
             status: notificationResponse.status,
             statusText: notificationResponse.statusText,
-            data: responseData
+            data: responseData,
           });
         } else {
           console.log("✅ Push notification sent successfully:", responseData);
@@ -407,7 +410,7 @@ export default function AddDoctorPage() {
           console.error("Error details:", {
             message: notifError.message,
             name: notifError.name,
-            stack: notifError.stack
+            stack: notifError.stack,
           });
         }
         // Don't fail the whole operation if notification fails

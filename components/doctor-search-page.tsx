@@ -53,6 +53,8 @@ import {
   ChevronRight,
   History,
   Clock,
+  Bell,
+  X,
 } from "lucide-react";
 import { type Department, type Doctor, type Hospital } from "@/lib/mock-data";
 // Data is now fetched through API routes which handle caching
@@ -107,6 +109,10 @@ export function DoctorSearchPage() {
   const [isUpdateHistoryOpen, setIsUpdateHistoryOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
+  // Notification banner states
+  const [unreadNotifications, setUnreadNotifications] = useState<any[]>([]);
+  const [showNotificationBanner, setShowNotificationBanner] = useState(false);
+
   const [openDepartmentCombobox, setOpenDepartmentCombobox] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -149,7 +155,28 @@ export function DoctorSearchPage() {
         setIsNotificationModalOpen(true);
       }, 2000);
     }
+    
+    // Check for unread notifications on mount
+    checkUnreadNotifications();
   }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    
+    // Listen for visibility change (app coming to foreground)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('App came to foreground, checking notifications...');
+        checkUnreadNotifications();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
@@ -389,6 +416,47 @@ export function DoctorSearchPage() {
   const handleNotificationDecline = () => {
     localStorage.setItem('notification-preference', 'declined');
     setIsNotificationModalOpen(false);
+  };
+
+  // Check for unread notifications in localStorage
+  const checkUnreadNotifications = () => {
+    try {
+      const stored = localStorage.getItem('pending_notifications');
+      if (stored) {
+        const notifications = JSON.parse(stored);
+        const unread = notifications.filter((n: any) => !n.read);
+        
+        if (unread.length > 0) {
+          setUnreadNotifications(unread);
+          setShowNotificationBanner(true);
+          console.log(`Found ${unread.length} unread notifications`);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load notifications:', error);
+    }
+  };
+
+  // Mark all notifications as read
+  const markNotificationsAsRead = () => {
+    try {
+      const stored = localStorage.getItem('pending_notifications');
+      if (stored) {
+        const notifications = JSON.parse(stored);
+        const updated = notifications.map((n: any) => ({ ...n, read: true }));
+        localStorage.setItem('pending_notifications', JSON.stringify(updated));
+        setUnreadNotifications([]);
+        setShowNotificationBanner(false);
+      }
+    } catch (error) {
+      console.error('Failed to mark notifications as read:', error);
+    }
+  };
+
+  // Close notification banner
+  const closeNotificationBanner = () => {
+    setShowNotificationBanner(false);
+    markNotificationsAsRead();
   };
 
   // Prevent hydration issues by not rendering until mounted
@@ -1398,6 +1466,60 @@ export function DoctorSearchPage() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Notification Banner */}
+        {showNotificationBanner && unreadNotifications.length > 0 && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom">
+            <div className="mx-auto max-w-7xl p-4">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg shadow-2xl p-4">
+                <div className="flex items-start gap-3">
+                  <Bell className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-base mb-2">
+                      새로운 알림 {unreadNotifications.length}개
+                    </h4>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {unreadNotifications.map((notification) => (
+                        <div 
+                          key={notification.id}
+                          className="bg-white/10 rounded-lg p-3 backdrop-blur-sm"
+                        >
+                          <div className="font-medium text-sm mb-1">
+                            {notification.title}
+                          </div>
+                          <div className="text-sm text-white/90">
+                            {notification.body}
+                          </div>
+                          <div className="text-xs text-white/70 mt-1">
+                            {new Date(notification.timestamp).toLocaleString('ko-KR')}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={closeNotificationBanner}
+                    className="text-white hover:bg-white/20 flex-shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={closeNotificationBanner}
+                    className="flex-1"
+                  >
+                    확인
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Notification Permission Modal */}
         <Dialog open={isNotificationModalOpen} onOpenChange={setIsNotificationModalOpen}>
