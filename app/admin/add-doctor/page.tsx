@@ -232,7 +232,7 @@ export default function AddDoctorPage() {
           },
           body: JSON.stringify({
             title: "새로운 의사 추가",
-            body: `${newDoctor.name} 의사님이 ${hospitalName}에 추가되었습니다.`,
+            body: `${newDoctor.name} 의사가 ${hospitalName}에 추가되었습니다.`,
             data: {
               type: "doctor_added",
               doctorName: newDoctor.name,
@@ -379,7 +379,7 @@ export default function AddDoctorPage() {
           },
           body: JSON.stringify({
             title: "의사 정보 수정",
-            body: `${updatedDoctor.name} 의사님의 정보가 수정되었습니다.`,
+            body: `${updatedDoctor.name} 의사 정보가 수정되었습니다.`,
             data: {
               type: "doctor_updated",
               doctorName: updatedDoctor.name,
