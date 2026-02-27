@@ -221,6 +221,55 @@ export default function AddDoctorPage() {
       // Refresh cache to reflect changes on main page
       await fetch("/api/doctors", { method: "POST" });
 
+      // Send push notification for new doctor
+      try {
+        console.log("🔔 Sending push notification for new doctor...");
+        const hospitalName = getHospitalName(newDoctor.hospital_id);
+        const notificationResponse = await fetch("/api/send-notification", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: "새로운 의사 추가",
+            body: `${newDoctor.name} 의사님이 ${hospitalName}에 추가되었습니다.`,
+            data: {
+              type: "doctor_added",
+              doctorName: newDoctor.name,
+              hospitalName: hospitalName,
+            },
+          }),
+        });
+
+        console.log(
+          "📡 Notification API response status:",
+          notificationResponse.status,
+        );
+
+        const responseData = await notificationResponse.json();
+        console.log("📦 Notification API response data:", responseData);
+
+        if (!notificationResponse.ok) {
+          console.error("❌ Notification API returned error:", {
+            status: notificationResponse.status,
+            statusText: notificationResponse.statusText,
+            data: responseData,
+          });
+        } else {
+          console.log("✅ Push notification sent successfully:", responseData);
+        }
+      } catch (notifError) {
+        console.error("❌ Failed to send push notification:", notifError);
+        if (notifError instanceof Error) {
+          console.error("Error details:", {
+            message: notifError.message,
+            name: notifError.name,
+            stack: notifError.stack,
+          });
+        }
+        // Don't fail the whole operation if notification fails
+      }
+
       setSuccess(true);
       await loadDoctors();
 
@@ -318,6 +367,55 @@ export default function AddDoctorPage() {
 
       // Refresh cache to reflect changes on main page
       await fetch("/api/doctors", { method: "POST" });
+
+      // Send push notification for doctor update
+      try {
+        console.log("🔔 Sending push notification for doctor update...");
+        const hospitalName = getHospitalName(updatedDoctor.hospital_id);
+        const notificationResponse = await fetch("/api/send-notification", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: "의사 정보 수정",
+            body: `${updatedDoctor.name} 의사님의 정보가 수정되었습니다.`,
+            data: {
+              type: "doctor_updated",
+              doctorName: updatedDoctor.name,
+              hospitalName: hospitalName,
+            },
+          }),
+        });
+
+        console.log(
+          "📡 Notification API response status:",
+          notificationResponse.status,
+        );
+
+        const responseData = await notificationResponse.json();
+        console.log("📦 Notification API response data:", responseData);
+
+        if (!notificationResponse.ok) {
+          console.error("❌ Notification API returned error:", {
+            status: notificationResponse.status,
+            statusText: notificationResponse.statusText,
+            data: responseData,
+          });
+        } else {
+          console.log("✅ Push notification sent successfully:", responseData);
+        }
+      } catch (notifError) {
+        console.error("❌ Failed to send push notification:", notifError);
+        if (notifError instanceof Error) {
+          console.error("Error details:", {
+            message: notifError.message,
+            name: notifError.name,
+            stack: notifError.stack,
+          });
+        }
+        // Don't fail the whole operation if notification fails
+      }
 
       await loadDoctors();
       setEditingDoctor(null);
