@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { sendNotificationToMultiple } from '@/lib/firebase/admin'
 
 // Check if Supabase credentials are available
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -49,15 +50,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // For now, just log that we would send notifications
-    // Firebase Admin SDK needs to be properly configured
-    console.log(`Would send notification to ${tokens.length} devices:`, { title, body })
+    console.log(`Sending notification to ${tokens.length} devices:`, { title, body })
 
-    return NextResponse.json({
-      success: true,
-      message: `Notification queued for ${tokens.length} devices`,
-      tokenCount: tokens.length,
-    })
+    // Send notifications using Firebase Admin SDK (HTTP v1 API)
+    const tokenStrings = tokens.map(t => t.token)
+    
+    try {
+      const result = await sendNotificationToMultiple(
+        tokenStrings,
+        title,
+        body,
+        data || {}
+      )
+
+      console.log(`Notification sent: ${result.successCount} success, ${result.failureCount} failed`)
+
+      return NextResponse.json({
+        success: true,
+        message: `Notification sent to ${result.successCount} devices`,
+        successCount: result.successCount,
+        failureCount: result.failureCount,
+        totalCount: tokens.length,
+      })
+    } catch (notificationError) {
+      console.error('Failed to send notifications:', notificationError)
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to send notifications. Check Firebase Admin SDK configuration.',
+        message: String(notificationError),
+      }, { status: 500 })
+    }
   } catch (error) {
     console.error('Error in send-notification API:', error)
     return NextResponse.json(
