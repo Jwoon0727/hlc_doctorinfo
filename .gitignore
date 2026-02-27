@@ -42,3 +42,5 @@ pnpm-lock.yaml
 # package manager lock files (keep only one)
 package-lock.json
 
+
+certificates
