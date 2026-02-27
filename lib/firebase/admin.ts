@@ -1,9 +1,13 @@
 import * as admin from 'firebase-admin'
 
+let isInitialized = false
+
 if (!admin.apps.length) {
   try {
     // Initialize with service account (for production)
     if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+      console.log('Initializing Firebase Admin with service account...')
+      
       const serviceAccount = JSON.parse(
         process.env.FIREBASE_SERVICE_ACCOUNT_KEY
       )
@@ -11,17 +15,38 @@ if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
       })
+      
+      isInitialized = true
+      console.log('Firebase Admin initialized successfully')
     } 
     // Initialize with project ID only (for development)
     else if (process.env.FIREBASE_PROJECT_ID) {
+      console.log('Initializing Firebase Admin with project ID...')
+      
       admin.initializeApp({
         credential: admin.credential.applicationDefault(),
         projectId: process.env.FIREBASE_PROJECT_ID,
       })
+      
+      isInitialized = true
+      console.log('Firebase Admin initialized successfully')
+    } else {
+      console.error('Firebase Admin SDK not initialized: Missing FIREBASE_SERVICE_ACCOUNT_KEY')
     }
   } catch (error) {
     console.error('Firebase admin initialization error:', error)
+    if (error instanceof Error) {
+      console.error('Error details:', error.message)
+      console.error('Error stack:', error.stack)
+    }
   }
+} else {
+  isInitialized = true
+  console.log('Firebase Admin already initialized')
+}
+
+export const checkFirebaseInitialized = () => {
+  return isInitialized && admin.apps.length > 0
 }
 
 export const sendNotification = async (
