@@ -218,9 +218,6 @@ export default function AddDoctorPage() {
 
       await addDoctorToSupabase(newDoctor);
 
-      // Refresh cache to reflect changes on main page
-      await fetch("/api/doctors", { method: "POST" });
-
       // Send push notification for new doctor
       try {
         console.log("🔔 Sending push notification for new doctor...");
@@ -365,9 +362,6 @@ export default function AddDoctorPage() {
 
       await updateDoctorInSupabase(editingDoctor.id, updatedDoctor);
 
-      // Refresh cache to reflect changes on main page
-      await fetch("/api/doctors", { method: "POST" });
-
       // Send push notification for doctor update
       try {
         console.log("🔔 Sending push notification for doctor update...");
@@ -435,9 +429,6 @@ export default function AddDoctorPage() {
     try {
       await deleteDoctorFromSupabase(doctorId);
 
-      // Refresh cache to reflect changes on main page
-      await fetch("/api/doctors", { method: "POST" });
-
       await loadDoctors();
       setDeleteConfirmId(null);
     } catch (err) {
@@ -463,9 +454,6 @@ export default function AddDoctorPage() {
       };
 
       await addHospitalToSupabase(hospital);
-
-      // Refresh cache to reflect changes on main page
-      await fetch("/api/hospitals", { method: "POST" });
 
       // Send push notification
       try {
@@ -538,9 +526,6 @@ export default function AddDoctorPage() {
 
       await addDepartmentToSupabase(department);
 
-      // Refresh cache to reflect changes on main page
-      await fetch("/api/departments", { method: "POST" });
-
       setNewDepartment({ name: "" });
       await loadHospitalsAndDepartments();
     } catch (err) {
@@ -571,9 +556,6 @@ export default function AddDoctorPage() {
       try {
         await deleteHospitalFromSupabase(hospitalId);
 
-        // Refresh cache to reflect changes on main page
-        await fetch("/api/hospitals", { method: "POST" });
-
         await loadHospitalsAndDepartments();
       } catch (err) {
         console.error("Failed to delete hospital:", err);
@@ -603,9 +585,6 @@ export default function AddDoctorPage() {
 
       try {
         await deleteDepartmentFromSupabase(departmentId);
-
-        // Refresh cache to reflect changes on main page
-        await fetch("/api/departments", { method: "POST" });
 
         await loadHospitalsAndDepartments();
       } catch (err) {

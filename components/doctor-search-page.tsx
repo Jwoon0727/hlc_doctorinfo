@@ -48,7 +48,6 @@ import {
   Loader2,
   HelpCircle,
   CheckCircle2,
-  RefreshCw,
   ChevronLeft,
   ChevronRight,
   History,
@@ -120,10 +119,6 @@ export function DoctorSearchPage() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
-  const [cacheStatus, setCacheStatus] = useState<{
-    isCached: boolean;
-    loadTime: number;
-  } | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -187,9 +182,6 @@ export function DoctorSearchPage() {
         setIsInitialLoading(true);
         setError(null);
 
-        const startTime = performance.now();
-
-        // Fetch from API routes (which use Upstash Redis caching)
         const [hospitalsRes, departmentsRes, doctorsRes] = await Promise.all([
           fetch("/api/hospitals"),
           fetch("/api/departments"),
@@ -200,26 +192,10 @@ export function DoctorSearchPage() {
           [hospitalsRes.json(), departmentsRes.json(), doctorsRes.json()],
         );
 
-        const endTime = performance.now();
-        const loadTime = Math.round(endTime - startTime);
-
         setHospitals(hospitalsData.data);
         setDepartments(departmentsData.data);
         setDoctors(doctorsData.data);
         setLastFetchTime(Date.now());
-
-        // Set cache status
-        const isCached =
-          hospitalsData.cached || departmentsData.cached || doctorsData.cached;
-        setCacheStatus({ isCached, loadTime });
-
-        // Log cache status
-        console.log("Data loaded:", {
-          hospitals: hospitalsData.cached ? "from cache" : "from database",
-          departments: departmentsData.cached ? "from cache" : "from database",
-          doctors: doctorsData.cached ? "from cache" : "from database",
-          loadTime: `${loadTime}ms`,
-        });
       } catch (err) {
         console.error("Failed to load data:", err);
         setError(
@@ -342,13 +318,10 @@ export function DoctorSearchPage() {
     setError(null);
 
     try {
-      const startTime = performance.now();
-
-      // Force refresh by calling POST endpoint for doctors
       const [hospitalsRes, departmentsRes, doctorsRes] = await Promise.all([
         fetch("/api/hospitals"),
         fetch("/api/departments"),
-        fetch("/api/doctors", { method: "POST" }), // POST to force refresh
+        fetch("/api/doctors"),
       ]);
 
       const [hospitalsData, departmentsData, doctorsData] = await Promise.all([
@@ -357,18 +330,10 @@ export function DoctorSearchPage() {
         doctorsRes.json(),
       ]);
 
-      const endTime = performance.now();
-      const loadTime = Math.round(endTime - startTime);
-
       setHospitals(hospitalsData.data);
       setDepartments(departmentsData.data);
       setDoctors(doctorsData.data);
       setLastFetchTime(Date.now());
-
-      // Update cache status (refresh always fetches fresh data)
-      setCacheStatus({ isCached: false, loadTime });
-
-      console.log("Data refreshed successfully", `${loadTime}ms`);
     } catch (err) {
       console.error("Failed to refresh data:", err);
       setError("데이터를 새로고침하는데 실패했습니다.");
@@ -491,39 +456,6 @@ export function DoctorSearchPage() {
         <header className="mb-8 text-center relative">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              {/* <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isLoading}
-              className="gap-2 bg-transparent hover:bg-blue-50"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              새로고침
-            </Button> */}
-
-              {/* Cache Status Indicator */}
-              {/* {cacheStatus && !isInitialLoading && (
-              <Badge 
-                variant={cacheStatus.isCached ? "default" : "secondary"}
-                className={`gap-1.5 px-3 py-1.5 ${
-                  cacheStatus.isCached 
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white' 
-                    : 'bg-gradient-to-r from-slate-500 to-gray-500 text-white'
-                }`}
-              >
-                <div className={`h-2 w-2 rounded-full ${
-                  cacheStatus.isCached ? 'bg-white animate-pulse' : 'bg-white'
-                }`} />
-                <span className="text-xs font-semibold">
-                  {cacheStatus.isCached ? 'Cache Hit' : 'DB Query'}
-                </span>
-                <span className="text-xs opacity-90">•</span>
-                <span className="text-xs font-mono">
-                  {cacheStatus.loadTime}ms
-                </span>
-              </Badge>
-            )} */}
             </div>
 
             <div className="flex items-center gap-2">

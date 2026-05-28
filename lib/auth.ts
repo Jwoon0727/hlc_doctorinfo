@@ -1,11 +1,21 @@
 // Authentication for admin access
 const AUTH_EXPIRY_HOURS = 24 // Authentication expires after 24 hours
 
-// This function is now async as it checks the database
 export async function validateAdminCredentials(name: string, password: string): Promise<boolean> {
-  // Dynamic import to avoid circular dependencies
-  const { verifyAdmin } = await import("@/lib/supabase/admins")
-  return await verifyAdmin(name, password)
+  const response = await fetch("/api/admin/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name, password }),
+  })
+
+  if (!response.ok) {
+    throw new Error("Login request failed")
+  }
+
+  const data = await response.json()
+  return data.valid === true
 }
 
 export function isAdminAuthenticated(): boolean {

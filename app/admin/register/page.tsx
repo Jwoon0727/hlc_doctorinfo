@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { UserPlus, Home, AlertTriangle, User, Lock, Loader2, CheckCircle2 } from "lucide-react"
-import { registerAdmin, checkAdminExists } from "@/lib/supabase/admins"
 
 export default function AdminRegisterPage() {
   const router = useRouter()
@@ -47,19 +46,28 @@ export default function AdminRegisterPage() {
     }
 
     try {
-      // Check if admin already exists
-      const exists = await checkAdminExists(name)
-      if (exists) {
+      const response = await fetch("/api/admin/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, password }),
+      })
+
+      const result = await response.json()
+
+      if (response.status === 409) {
         setError("이미 존재하는 관리자 이름입니다.")
         setIsLoading(false)
         return
       }
 
-      // Register admin
-      await registerAdmin(name, password)
+      if (!response.ok) {
+        throw new Error(result.error || "Registration failed")
+      }
+
       setSuccess(true)
-      
-      // Redirect to login after 2 seconds
+
       setTimeout(() => {
         router.push("/admin/login")
       }, 2000)
