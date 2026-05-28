@@ -58,6 +58,7 @@ import {
 import { type Department, type Doctor, type Hospital } from "@/lib/mock-data";
 // Data is now fetched through API routes which handle caching
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { InstallPrompt } from "@/components/install-prompt";
 
@@ -480,10 +481,22 @@ export function DoctorSearchPage() {
               </Link>
             </div>
           </div>
-          <div className="mt-8 text-center">
-            <h1 className="mb-2 text-3xl font-bold text-blue-600 dark:text-blue-400">
-              천안HLC 협조의사명단
-            </h1>
+          <div className="mt-8 flex flex-col items-center text-center">
+            <div className="mb-2 flex items-center justify-center gap-3">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-md ring-2 ring-blue-100 dark:ring-blue-900">
+                <Image
+                  src="/icons/logo192192.png"
+                  alt="천안HLC 로고"
+                  width={56}
+                  height={56}
+                  className="h-full w-full object-cover"
+                  priority
+                />
+              </div>
+              <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                천안HLC 협조의사명단
+              </h1>
+            </div>
             <p className="text-muted-foreground">
               협조의사/일반의사 등급별 검색
             </p>

@@ -1,8 +1,6 @@
-// Import Firebase scripts
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js')
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js')
 
-// Initialize Firebase in the service worker
 firebase.initializeApp({
   apiKey: 'AIzaSyCUsRMF9Pu9WoWXPyCGe6HkhydTGEK-SRY',
   authDomain: 'hlc-doctor.firebaseapp.com',
@@ -14,44 +12,87 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging()
 
-// Handle background messages
+// Android/Desktop: Firebase SDK background message handler
 messaging.onBackgroundMessage((payload) => {
-  console.log('Received background message:', payload)
+  console.log('[SW] onBackgroundMessage:', payload)
 
-  const notificationTitle = payload.notification?.title || 'New Notification'
-  const notificationBody = payload.notification?.body || ''
-  const notificationOptions = {
-    body: notificationBody,
-    icon: '/logo192192.png',
+  // iOS에서는 이 핸들러가 호출되지 않을 수 있으므로
+  // 아래 push 이벤트 리스너가 fallback 역할을 합니다.
+  const title = payload.notification?.title || payload.data?.title || '새 알림'
+  const body = payload.notification?.body || payload.data?.body || ''
+
+  self.registration.showNotification(title, {
+    body,
+    icon: '/icons/logo192192.png',
     badge: '/logo32.png',
-  }
+    data: payload.data || {},
+    tag: 'fcm-' + Date.now(),
+  })
+})
 
-  // Save notification to localStorage for later display
+// iOS Safari PWA: 네이티브 push 이벤트 리스너 (fallback)
+// iOS는 Firebase SDK의 onBackgroundMessage 대신 이 핸들러를 사용합니다.
+self.addEventListener('push', (event) => {
+  console.log('[SW] push event received:', event)
+
+  if (!event.data) return
+
+  let payload
   try {
-    const notification = {
-      id: Date.now(),
-      title: notificationTitle,
-      body: notificationBody,
-      data: payload.data || {},
-      timestamp: new Date().toISOString(),
-      read: false
-    }
-    
-    // Get existing notifications
-    const stored = self.localStorage?.getItem('pending_notifications') || '[]'
-    const notifications = JSON.parse(stored)
-    notifications.push(notification)
-    
-    // Keep only last 10 notifications
-    if (notifications.length > 10) {
-      notifications.shift()
-    }
-    
-    self.localStorage?.setItem('pending_notifications', JSON.stringify(notifications))
-    console.log('Notification saved to storage:', notification)
-  } catch (error) {
-    console.error('Failed to save notification:', error)
+    payload = event.data.json()
+  } catch (e) {
+    payload = { notification: { title: '새 알림', body: event.data.text() } }
   }
 
-  self.registration.showNotification(notificationTitle, notificationOptions)
+  // Firebase SDK가 이미 처리한 경우 중복 방지
+  // FCM은 notification 필드가 있으면 자동으로 알림을 표시하므로
+  // data-only 메시지일 때만 수동으로 표시
+  const isDataOnly = !payload.notification && payload.data
+  const fcmData = payload.data || {}
+  const notification = payload.notification || {}
+
+  const title = notification.title || fcmData.title || '새 알림'
+  const body = notification.body || fcmData.body || ''
+
+  // iOS에서는 notification 필드가 있어도 자동 표시가 안 될 수 있으므로
+  // waitUntil로 알림 표시를 보장합니다.
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: '/icons/logo192192.png',
+      badge: '/logo32.png',
+      data: fcmData,
+      tag: 'push-' + Date.now(),
+    })
+  )
+})
+
+// 알림 클릭 시 앱 열기
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] notificationclick:', event)
+  event.notification.close()
+
+  const targetUrl = event.notification.data?.url || '/'
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          return client.focus()
+        }
+      }
+      return clients.openWindow(targetUrl)
+    })
+  )
+})
+
+// 서비스 워커 즉시 활성화
+self.addEventListener('install', (event) => {
+  console.log('[SW] install')
+  self.skipWaiting()
+})
+
+self.addEventListener('activate', (event) => {
+  console.log('[SW] activate')
+  event.waitUntil(self.clients.claim())
 })

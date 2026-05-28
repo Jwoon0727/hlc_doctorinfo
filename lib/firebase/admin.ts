@@ -56,12 +56,28 @@ export const sendNotification = async (
   data?: Record<string, string>
 ) => {
   try {
-    const message = {
+    const message: admin.messaging.Message = {
       notification: {
         title,
         body,
       },
-      data: data || {},
+      data: { ...(data || {}), title, body },
+      webpush: {
+        headers: {
+          Urgency: 'high',
+          TTL: '86400',
+        },
+        notification: {
+          title,
+          body,
+          icon: '/icons/logo192192.png',
+          badge: '/logo32.png',
+          requireInteraction: true,
+        },
+        fcmOptions: {
+          link: '/',
+        },
+      },
       token,
     }
 
@@ -81,12 +97,28 @@ export const sendNotificationToMultiple = async (
   data?: Record<string, string>
 ) => {
   try {
-    const message = {
+    const message: admin.messaging.MulticastMessage = {
       notification: {
         title,
         body,
       },
-      data: data || {},
+      data: { ...(data || {}), title, body },
+      webpush: {
+        headers: {
+          Urgency: 'high',
+          TTL: '86400',
+        },
+        notification: {
+          title,
+          body,
+          icon: '/icons/logo192192.png',
+          badge: '/logo32.png',
+          requireInteraction: true,
+        },
+        fcmOptions: {
+          link: '/',
+        },
+      },
       tokens,
     }
 
