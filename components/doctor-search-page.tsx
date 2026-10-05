@@ -1529,7 +1529,7 @@ export function DoctorSearchPage() {
                     📱 iOS 사용자 안내
                   </h4>
                   <p className="text-xs text-orange-700 dark:text-orange-300 mb-2">
-                    iPhone/iPad에서 알림을 받으려면 앱을 설치해야 합니다:
+                    iPhone/iPad에서 알림을 받으려면 앱을 설치해야 합니다. :
                   </p>
                   <ol className="space-y-1 text-xs text-orange-700 dark:text-orange-300 list-decimal list-inside">
                     <li>Safari에서 하단 공유 버튼 탭</li>
