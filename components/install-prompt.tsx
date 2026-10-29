@@ -72,7 +72,7 @@ export function InstallPrompt() {
             className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg"
           >
             <Download className="mr-2 h-5 w-5" />
-            나중에 할게요
+            나중에 할게요.
           </Button>
 
         </div>
